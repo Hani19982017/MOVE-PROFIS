@@ -381,8 +381,22 @@ useEffect(() => {
       setEinzugsort(move.deliveryAddress || ""); setEinzugEtage(move.deliveryFloor || "Erdgeschoss");
       setEinzugFahrstuhl(move.deliveryElevatorCapacity || "kein Aufzug vorhanden");
       setEinzugLaufweg(move.deliveryParkingDistance || "10 - 20 m");
-      if (move.pickupDate) setTerminVon(new Date(move.pickupDate).toISOString().split("T")[0]);
-      if (move.deliveryDate) setTerminBis(new Date(move.deliveryDate).toISOString().split("T")[0]);
+      // Date loading is defensive: skip invalid dates (e.g., '0000-00-00'
+// from previously-corrupted rows) so the user sees the empty placeholder
+// instead of "Invalid Date" or random garbage. Year < 1971 means the
+// date is the MySQL zero-date sentinel.
+if (move.pickupDate) {
+  const d = new Date(move.pickupDate);
+  if (!isNaN(d.getTime()) && d.getFullYear() > 1970) {
+    setTerminVon(d.toISOString().split("T")[0]);
+  }
+}
+if (move.deliveryDate) {
+  const d = new Date(move.deliveryDate);
+  if (!isNaN(d.getTime()) && d.getFullYear() > 1970) {
+    setTerminBis(d.toISOString().split("T")[0]);
+  }
+}
       setAuszugFlaeche(move.auszugFlaeche ? String(move.auszugFlaeche) : "");
       setAuszugZimmer(move.auszugZimmer ? String(move.auszugZimmer) : "");
       setEinzugFlaeche(move.einzugFlaeche ? String(move.einzugFlaeche) : "");
