@@ -153,7 +153,9 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
         volume: m3 ? parseFloat(m3) : undefined, distance: distanz ? parseFloat(distanz) : undefined,
         anfahrt: anfahrt ? parseInt(anfahrt) : 0,
         pickupDate: terminVon, deliveryDate: terminBis,
-        pickupAddress: auszugsort, pickupFloor: auszugEtage,
+      // null clears the reminder, value sets/updates it
+      reminderDate: reminderDate ? reminderDate : null,
+      pickupAddress: auszugsort, pickupFloor: auszugEtage,
         pickupElevatorCapacity: auszugFahrstuhl, pickupParkingDistance: auszugLaufweg,
         deliveryAddress: einzugsort, deliveryFloor: einzugEtage,
         deliveryElevatorCapacity: einzugFahrstuhl, deliveryParkingDistance: einzugLaufweg,
@@ -241,6 +243,8 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
   const [mitFotos, setMitFotos] = useState(true);
   const [terminVon, setTerminVon] = useState("");
   const [terminBis, setTerminBis] = useState("");
+  // reminderDate: stored in customerReminders. Empty means no scheduled reminder.
+  const [reminderDate, setReminderDate] = useState("");
   const [umzugscode, setUmzugscode] = useState("");
   const [bezahlt, setBezahlt] = useState(false);
   const [callCheck, setCallCheck] = useState("Nein");
@@ -346,9 +350,15 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
   const [auditRechnungBetrag, setAuditRechnungBetrag] = useState("");
   const [auditRechnungNummer, setAuditRechnungNummer] = useState("");
 
-  useEffect(() => {
+useEffect(() => {
     if (!data) return;
-    const { customer, move, images } = data as any;
+    const { customer, move, images, reminder } = data as any;
+    // Load the customer reminder date (from the separate customerReminders table)
+    if (reminder?.reminderDate) {
+      setReminderDate(new Date(reminder.reminderDate).toISOString().split("T")[0]);
+    } else {
+      setReminderDate("");
+    }
     if (customer) {
       setAnrede(customer.title || "Herr");
       setName(`${customer.firstName || ""} ${customer.lastName || ""}`.trim());
@@ -625,9 +635,10 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
               <Field label="Umzug Termin Von">{inp(terminVon, setTerminVon, { type: "date", placeholder: "Von Datum" })}</Field>
               <Field label="Phone">{inp(phone, setPhone, { placeholder: "0175 0000000" })}</Field>
               <Field label="Filiale">{sel(sitz, setSitz, branchOptions)}</Field>
-              <Field label="Umzug Termin Bis">{inp(terminBis, setTerminBis, { type: "date", placeholder: "Bis Datum" })}</Field>
+            <Field label="Umzug Termin Bis">{inp(terminBis, setTerminBis, { type: "date", placeholder: "Bis Datum" })}</Field>
               <Field label="Email">{inp(email, setEmail, { type: "email", placeholder: "email@example.com" })}</Field>
-              <Field label="Status">{sel(status2, setStatus2, ["Angaben vollständig","Nachverfolgen","Online-besichtigungtermin","Besichtigungtermin","Absagen"])}</Field>
+              <Field label="موعد التذكير / Erinnerungsdatum">{inp(reminderDate, setReminderDate, { type: "date", placeholder: "Optional" })}</Field>
+              <Field label="Status">{sel(status2, setStatus2, ["Registriert auf Apex","Angebot gesendet","Bestaetigt","Abgesagt","Abgeschlossen"])}</Field>
               <Field label="Kundennummer">{inp(umzugscode, setUmzugscode, { placeholder: "00001", readOnly: true })}</Field>
               <Field label="Price Brutto (EUR)">{inp(priceBrutto, setPriceBrutto, { type: "number", placeholder: "0" })}</Field>
               <Field label="Versuch">{sel(versuch, setVersuch, ["Versuch 1","Versuch 2","Versuch 3","Versuch 4","Versuch 5","Versuch 6"])}</Field>
