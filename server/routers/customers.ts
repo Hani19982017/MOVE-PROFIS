@@ -267,7 +267,35 @@ export const customersRouter = router({
           .$returningId();
 
         const moveId = moveResult[0]?.id;
-
+// [DIAGNOSTIC] Read back the row we just inserted to see what the
+        // database actually stored. If pickupDate/deliveryDate come back as
+        // null here, the column is silently coercing the value to NULL —
+        // which usually means a column-type mismatch (e.g., the live DB has
+        // the column as DATE NULL even though the schema says timestamp NOT NULL).
+        if (moveId) {
+          try {
+            const [verify] = await db.select().from(moves).where(eq(moves.id, moveId)).limit(1);
+            console.log("[customers.create] DB readback:", {
+              id: verify?.id,
+              pickupDate: verify?.pickupDate,
+              deliveryDate: verify?.deliveryDate,
+              pickupDateType: typeof verify?.pickupDate,
+            });
+            // Inspect the actual MySQL column structure so we can see if the
+            // production schema has the columns defined as nullable / wrong type.
+            try {
+              // @ts-ignore – use raw mysql2 query through drizzle's session
+              const cols: any = await (db as any).execute(
+                `SHOW COLUMNS FROM \`moves\` WHERE Field IN ('pickupDate','deliveryDate')`
+              );
+              console.log("[customers.create] column info:", JSON.stringify(cols?.[0] ?? cols));
+            } catch (colErr) {
+              console.error("[customers.create] column inspect failed:", colErr);
+            }
+          } catch (verifyErr) {
+            console.error("[customers.create] readback failed:", verifyErr);
+          }
+        }
         if (!moveId) {
           throw new Error("فشل استرداد معرف الطلب بعد الإنشاء");
         }
