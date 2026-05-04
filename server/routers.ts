@@ -164,10 +164,20 @@ export const appRouter = router({
           .from(moveImages)
           .where(eq(moveImages.imageType, 'customer_photos'))
           .groupBy(moveImages.moveId);
-        const photoCountMap: Record<number, number> = {};
+      const photoCountMap: Record<number, number> = {};
         for (const row of photoCounts) {
           photoCountMap[row.moveId] = Number(row.count);
         }
+        // [DIAGNOSTIC] Log the most recent moves to verify date columns are
+        // being returned by the DB. Remove these logs once date issues
+        // are confirmed fixed.
+        const sample = allMoves.slice(-3).map(m => ({
+          id: m.id,
+          customerId: m.customerId,
+          pickupDate: m.pickupDate,
+          deliveryDate: m.deliveryDate,
+        }));
+        console.log("[moves.list] last 3 moves:", JSON.stringify(sample));
         return allMoves.map(m => ({
           ...m,
           kundenummer: formatCustomerNumber(m.customerId),
