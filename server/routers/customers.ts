@@ -177,7 +177,33 @@ export const customersRouter = router({
 
       const effectiveBranchId: number = input.branchId ?? ctx.user.branchId ?? 1;
 
-      try {
+     try {
+      // Defensive: validate the incoming pickup/delivery dates BEFORE the insert.
+      // The columns are NOT NULL, so an Invalid Date / empty string would either
+      // fail the insert or silently corrupt the row to '0000-00-00 00:00:00'.
+      // Fall back to today if the input is missing or unparseable.
+      const todayMidnight = (() => {
+        const now = new Date();
+        return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      })();
+      const safeDate = (raw: unknown): Date => {
+        if (typeof raw === "string" && raw.trim()) {
+          const parsed = new Date(raw);
+          if (!isNaN(parsed.getTime()) && parsed.getFullYear() > 1970) {
+            return parsed;
+          }
+        }
+        return todayMidnight;
+      };
+      const pickupDateValue = safeDate(input.pickupDate);
+      const deliveryDateValue = safeDate(input.deliveryDate);
+      console.log("[customers.create] dates:", {
+        rawPickup: input.pickupDate,
+        rawDelivery: input.deliveryDate,
+        finalPickup: pickupDateValue.toISOString(),
+        finalDelivery: deliveryDateValue.toISOString(),
+      });
+
       const customerResult = await db
           .insert(customers)
           .values({
@@ -216,8 +242,8 @@ export const customersRouter = router({
             deliveryFloor: input.deliveryFloor,
             deliveryElevatorCapacity: input.deliveryElevatorCapacity,
             deliveryParkingDistance: input.deliveryParkingDistance,
-            pickupDate: new Date(input.pickupDate),
-            deliveryDate: new Date(input.deliveryDate),
+          pickupDate: pickupDateValue,
+            deliveryDate: deliveryDateValue,
             volume: input.volume,
             grossPrice: input.grossPrice ? input.grossPrice.toFixed(2) : "0.00",
             distance: input.distance,
