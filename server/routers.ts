@@ -224,8 +224,10 @@ export const appRouter = router({
         if (data.deliveryFloor !== undefined) updateData.deliveryFloor = data.deliveryFloor;
         if (data.deliveryElevatorCapacity !== undefined) updateData.deliveryElevatorCapacity = data.deliveryElevatorCapacity;
         if (data.deliveryParkingDistance !== undefined) updateData.deliveryParkingDistance = data.deliveryParkingDistance;
-        if (data.pickupDate !== undefined) updateData.pickupDate = new Date(data.pickupDate);
-        if (data.deliveryDate !== undefined) updateData.deliveryDate = new Date(data.deliveryDate);
+        // Only update dates if a non-empty value is provided. Empty values
+// would produce Invalid Date and corrupt the NOT NULL columns.
+if (data.pickupDate) updateData.pickupDate = new Date(data.pickupDate);
+if (data.deliveryDate) updateData.deliveryDate = new Date(data.deliveryDate);
         // grossPrice is stored as decimal(15,2) in euros — preserve 2-decimal precision, don't round to int
         if (data.grossPrice !== undefined) updateData.grossPrice = Math.round(data.grossPrice * 100) / 100;
         if (data.volume !== undefined) updateData.volume = data.volume;
@@ -618,8 +620,12 @@ export const appRouter = router({
           if (input.volume !== undefined) moveUpdate.volume = input.volume;
           if (input.distance !== undefined) moveUpdate.distance = input.distance;
           if (input.anfahrt !== undefined) moveUpdate.anfahrt = input.anfahrt;
-          if (input.pickupDate !== undefined) moveUpdate.pickupDate = input.pickupDate ? new Date(input.pickupDate) : null;
-          if (input.deliveryDate !== undefined) moveUpdate.deliveryDate = input.deliveryDate ? new Date(input.deliveryDate) : null;
+          // Only update pickup/delivery dates if a non-empty value is provided.
+// Empty/null values must NEVER overwrite existing dates because
+// pickupDate/deliveryDate are NOT NULL columns — sending null would
+// silently corrupt the row to '0000-00-00 00:00:00' on MySQL.
+if (input.pickupDate) moveUpdate.pickupDate = new Date(input.pickupDate);
+if (input.deliveryDate) moveUpdate.deliveryDate = new Date(input.deliveryDate);
           if (input.pickupAddress !== undefined) moveUpdate.pickupAddress = input.pickupAddress;
           if (input.pickupFloor !== undefined) moveUpdate.pickupFloor = input.pickupFloor;
           if (input.pickupElevatorCapacity !== undefined) moveUpdate.pickupElevatorCapacity = input.pickupElevatorCapacity;
