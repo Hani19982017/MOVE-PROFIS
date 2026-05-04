@@ -257,6 +257,13 @@ export const appRouter = router({
           const { assertBranchAccess } = await import('./_core/context');
           assertBranchAccess(ctx.user, move.branchId);
           const [customer] = await db.select().from(customers).where(eq(customers.id, move.customerId)).limit(1);
+          // Fetch the customer's reminder (if any) so the edit dialog
+          // can display and edit reminderDate alongside the order fields.
+          const [reminder] = await db
+            .select()
+            .from(customerReminders)
+            .where(eq(customerReminders.customerId, move.customerId))
+            .limit(1);
           // Don't pull the LONGBLOB `data` column — it's heavy and only needed
           // when serving an individual image via /api/images/:id.
       // Fetch images, but exclude the heavy LONGBLOB `data` column.
@@ -268,7 +275,7 @@ export const appRouter = router({
             ...img,
             imageUrl: img.imageUrl || `/api/images/${img.id}`,
           }));
-          return { move, customer: customer ?? null, images, reminder };
+         return { move, customer: customer ?? null, images, reminder: reminder ?? null };
         } catch (e) {
           console.error("Error fetching move:", e);
           return null;
