@@ -148,12 +148,19 @@ async function startServer() {
 
   // Bind to 0.0.0.0 in production so the host platform can reach the server.
   const host = isProduction ? "0.0.0.0" : "localhost";
-  server.listen(port, host, () => {
+server.listen(port, host, async () => {
     console.log(`Server running on http://${host}:${port}/`);
     console.log(`[Boot] Auth endpoints registered:`);
     console.log(`  POST http://${host}:${port}/api/auth/admin-login`);
     console.log(`  POST http://${host}:${port}/api/auth/local-login`);
     console.log(`[Boot] Static uploads served from: ${uploadsDir}`);
+    // Run idempotent runtime migrations (fixes prod schema drift).
+    try {
+      const { runRuntimeMigrations } = await import("./migrations");
+      await runRuntimeMigrations();
+    } catch (err) {
+      console.error("[Boot] runtime migrations failed:", err);
+    }
   });
 }
 
