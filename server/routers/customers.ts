@@ -376,6 +376,7 @@ export const customersRouter = router({
         }
 
         if (input.images && input.images.length > 0) {
+          console.log(`[customers.create] uploading ${input.images.length} image(s) for moveId=${moveId}`);
           for (const image of input.images) {
             try {
               // Save photos directly to the database as LONGBLOB.
@@ -387,6 +388,10 @@ export const customersRouter = router({
               const mimeMatch = image.data.match(/^data:([^;]+);/);
               const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
               const buffer = Buffer.from(base64Data, "base64");
+              console.log(
+                `[customers.create] image "${image.name}": ` +
+                  `mime=${mimeType}, base64Len=${base64Data.length}, bufferBytes=${buffer.length}`
+              );
 
               const inserted = await db.insert(moveImages).values({
                 moveId,
@@ -411,10 +416,23 @@ export const customersRouter = router({
                   .limit(1);
                 imageId = latest?.id ?? null;
               }
+              console.log(`[customers.create] inserted image with id=${imageId}`);
               if (imageId !== null) {
                 await db.update(moveImages)
                   .set({ imageUrl: `/api/images/${imageId}` })
                   .where(eq(moveImages.id, imageId));
+                // Verify the data was stored
+                try {
+                  const { sql } = await import("drizzle-orm");
+                  const verify: any = await (db as any).execute(
+                    sql.raw(`SELECT \`id\`, LENGTH(\`data\`) AS dataLen, \`mimeType\`, \`imageUrl\` FROM \`moveImages\` WHERE \`id\` = ${imageId}`)
+                  );
+                  const rows = Array.isArray(verify?.[0]) ? verify[0] : verify;
+                  const r = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+                  console.log(`[customers.create] verify image id=${imageId}: ${JSON.stringify(r)}`);
+                } catch (vErr) {
+                  console.error("[customers.create] verify failed:", vErr);
+                }
               }
             } catch (error) {
               console.error("Error uploading image:", error);
