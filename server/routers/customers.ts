@@ -45,44 +45,91 @@ function parseServicesJson(raw: string | null | undefined): Record<string, unkno
 function buildOfferSummary(servicesJson: Record<string, unknown>, servicesText: string | null | undefined) {
   const lines: string[] = [];
 
+  // ── Auszugsort ─────────────────────────────────────────────────
   if (servicesJson.auszugsortEmpfangsservice) {
     lines.push(`Einpackservice Auszug (${String(servicesJson.auszugsortEmpfangsserviceKartons ?? 0)} Kartons)`);
-  }
-  if (servicesJson.einzugsortAuspacksservice) {
-    lines.push(`Auspackservice Einzug (${String(servicesJson.einzugsortAuspacksserviceKartons ?? 0)} Kartons)`);
   }
   if (servicesJson.auszugsortAbbauMoebel) {
     lines.push(`Möbelabbau Auszug (${String(servicesJson.auszugsortAbbauMoebelM3 ?? 0)} m³)`);
   }
-  if (servicesJson.einzugsortAufbauMoebel) {
-    lines.push(`Möbelaufbau Einzug (${String(servicesJson.einzugsortAufbauMoebelM3 ?? 0)} m³)`);
-  }
   if (servicesJson.auszugsortAbbauKueche) {
     lines.push(`Küchenabbau (${String(servicesJson.auszugsortAbbauKuecheM3 ?? 0)} m³)`);
+  }
+  if (servicesJson.auszugsortParkzone) {
+    lines.push("Einrichtung einer Parkzone am Auszugsort");
+  }
+
+  // ── Einzugsort ─────────────────────────────────────────────────
+  if (servicesJson.einzugsortAuspacksservice) {
+    lines.push(`Auspackservice Einzug (${String(servicesJson.einzugsortAuspacksserviceKartons ?? 0)} Kartons)`);
+  }
+  if (servicesJson.einzugsortAufbauMoebel) {
+    lines.push(`Möbelaufbau Einzug (${String(servicesJson.einzugsortAufbauMoebelM3 ?? 0)} m³)`);
   }
   if (servicesJson.einzugsortAufbauKueche) {
     lines.push(`Küchenaufbau (${String(servicesJson.einzugsortAufbauKuecheM3 ?? 0)} m³)`);
   }
+  if (servicesJson.einzugsortParkzone) {
+    lines.push("Einrichtung einer Parkzone am Einzugsort");
+  }
+
+  // ── Kartons ────────────────────────────────────────────────────
   if (Number(servicesJson.umzugskartons ?? 0) > 0) {
     lines.push(`Umzugskartons: ${String(servicesJson.umzugskartons)}`);
   }
   if (Number(servicesJson.kleiderkartons ?? 0) > 0) {
     lines.push(`Kleiderkartons: ${String(servicesJson.kleiderkartons)}`);
   }
+
+  // ── Additional services ────────────────────────────────────────
   if (servicesJson.klaviertransport) {
     lines.push(`Klaviertransport (${String(servicesJson.klavierGross ?? "Standard")})`);
+  }
+  // schwerTransport may be a select like "Kein" / "Klein" / "Mittel" / "Gross"
+  // — treat anything non-empty and non-"Kein" as a real selection.
+  {
+    const st = String(servicesJson.schwerTransport ?? "").trim();
+    if (st && st.toLowerCase() !== "kein") {
+      lines.push(`Schwer Transport (${st})`);
+    }
+  }
+  if (servicesJson.lampen) {
+    const ort = String(servicesJson.lampenOrt ?? "").trim();
+    const stueck = Number(servicesJson.lampenStueck ?? 0);
+    const detail = [
+      ort && ort.toLowerCase() !== "kein" ? ort : null,
+      stueck > 0 ? `${stueck} Stück` : null,
+    ].filter(Boolean).join(", ");
+    lines.push(detail ? `Lampen (${detail})` : "Lampen");
+  }
+  if (servicesJson.einlagerungMoebel) {
+    const price = Number(servicesJson.einlagerungPrice ?? 0);
+    lines.push(price > 0 ? `Einlagerung von Möbeln (${price} €)` : "Einlagerung von Möbeln");
   }
   if (servicesJson.endreinigung) {
     lines.push("Endreinigung");
   }
+  if (servicesJson.bohrDuebel) {
+    const punkte = Number(servicesJson.bohrPunkt ?? 0);
+    lines.push(punkte > 0 ? `Bohr- und Dübelarbeit (${punkte} Punkte)` : "Bohr- und Dübelarbeit");
+  }
   if (servicesJson.entsorgungMoebel) {
     lines.push(`Entsorgung (${String(servicesJson.entsorgungType ?? "Standard")}, ${String(servicesJson.entsorgungM3 ?? 0)} m³)`);
+  }
+  {
+    const aussenlift = String(servicesJson.ausmist ?? "").trim();
+    if (aussenlift && aussenlift.toLowerCase() !== "nein") {
+      const stunden = Number(servicesJson.ausmistStunde ?? 0);
+      lines.push(stunden > 0 ? `Außenlift (${stunden} Stunden)` : "Außenlift");
+    }
   }
   if (servicesJson.anschlussWaschmaschine) {
     lines.push("Anschluss Waschmaschine");
   }
   if (String(servicesJson.sonstigeLeistung ?? "").trim()) {
-    lines.push(`Sonstige Leistung: ${String(servicesJson.sonstigeLeistung)}`);
+    const price = Number(servicesJson.sonstigeLeistungPrice ?? 0);
+    const text = String(servicesJson.sonstigeLeistung).trim();
+    lines.push(price > 0 ? `Sonstige Leistung: ${text} (${price} €)` : `Sonstige Leistung: ${text}`);
   }
 
   // Note: the move's `services` free-text field is intentionally NOT
