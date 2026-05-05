@@ -405,10 +405,6 @@ export function generateOfferHTML(data: OfferTemplateData): string {
             <li>Bereitstellung von Luftpolsterfolie und Umzugsfolienrollen</li>
         </ul>
 
-        <div style="margin-top: 12px;">
-            ${renderServiceLines(data.serviceSummary)}
-        </div>
-
         <div class="footer-logos">
             <img src="${assets.badge2025}" class="badge-img">
             <img src="${assets.badge2024}" class="badge-img">
