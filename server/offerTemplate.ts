@@ -106,22 +106,17 @@ function addressCell(value: string | null | undefined): string {
 
 // Turn `serviceSummary` (newline-separated extra services) into list items
 // that fill the dynamic rows on page 2. Up to 11 lines fit; extra are dropped.
+// Turn `serviceSummary` (newline-separated extra services from
+// buildOfferSummary in customers.ts) into bullet list items styled to match
+// the static LEISTUNGEN entries above them. Returns "" when there is nothing
+// to render so we don't get an empty header on the page.
 function renderServiceLines(value: string | null | undefined): string {
   const lines = String(value ?? "")
     .split(/\n+/)
     .map(line => line.trim())
-    .filter(Boolean)
-    .slice(0, 11);
-  while (lines.length < 11) {
-    lines.push("");
-  }
-  return lines
-    .map(line =>
-      line.length > 0
-        ? `<div class="empty-line">${escapeHtml(line)}</div>`
-        : `<div class="empty-line"></div>`,
-    )
-    .join("\n            ");
+    .filter(Boolean);
+  if (lines.length === 0) return "";
+  return lines.map(line => `<li>${escapeHtml(line)}</li>`).join("\n            ");
 }
 
 function valueOrBlank(value: string | null | undefined): string {
@@ -403,6 +398,7 @@ export function generateOfferHTML(data: OfferTemplateData): string {
             <li>Ab/Anfahrt</li>
             <li>Be- und Entladung</li>
             <li>Bereitstellung von Luftpolsterfolie und Umzugsfolienrollen</li>
+            ${renderServiceLines(data.serviceSummary)}
         </ul>
 
         <div class="footer-logos">
