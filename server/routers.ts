@@ -848,6 +848,9 @@ export const appRouter = router({
 
                 const inserted = await db.insert(moveImages).values({
                   moveId: input.moveId,
+                  // Placeholder for legacy NOT NULL imageUrl columns; updated
+                  // immediately below once we know the row id.
+                  imageUrl: "",
                   imageKey: img.name || `photo-${Date.now()}`,
                   data: buffer,
                   mimeType,
