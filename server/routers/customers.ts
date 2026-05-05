@@ -85,14 +85,9 @@ function buildOfferSummary(servicesJson: Record<string, unknown>, servicesText: 
     lines.push(`Sonstige Leistung: ${String(servicesJson.sonstigeLeistung)}`);
   }
 
-  if (lines.length === 0 && servicesText?.trim()) {
-    return servicesText.trim();
-  }
-
-  if (servicesText?.trim()) {
-    lines.push(servicesText.trim());
-  }
-
+  // Note: the move's `services` free-text field is intentionally NOT
+  // appended here. Only the structured selections (kartons, möbelaufbau,
+  // klaviertransport, …) appear on the PDF as LEISTUNGEN bullets.
   return lines.join("\n");
 }
 
@@ -177,7 +172,7 @@ export const customersRouter = router({
 
       const effectiveBranchId: number = input.branchId ?? ctx.user.branchId ?? 1;
 
-     try {
+      try {
       // Defensive: validate the incoming pickup/delivery dates BEFORE the insert.
       // The columns are NOT NULL, so an Invalid Date / empty string would either
       // fail the insert or silently corrupt the row to '0000-00-00 00:00:00'.
@@ -242,7 +237,7 @@ export const customersRouter = router({
             deliveryFloor: input.deliveryFloor,
             deliveryElevatorCapacity: input.deliveryElevatorCapacity,
             deliveryParkingDistance: input.deliveryParkingDistance,
-          pickupDate: pickupDateValue,
+            pickupDate: pickupDateValue,
             deliveryDate: deliveryDateValue,
             volume: input.volume,
             grossPrice: input.grossPrice ? input.grossPrice.toFixed(2) : "0.00",
@@ -267,7 +262,8 @@ export const customersRouter = router({
           .$returningId();
 
         const moveId = moveResult[0]?.id;
-// [DIAGNOSTIC] Read back the row we just inserted to see what the
+
+        // [DIAGNOSTIC] Read back the row we just inserted to see what the
         // database actually stored. If pickupDate/deliveryDate come back as
         // null here, the column is silently coercing the value to NULL —
         // which usually means a column-type mismatch (e.g., the live DB has
@@ -296,6 +292,8 @@ export const customersRouter = router({
             console.error("[customers.create] readback failed:", verifyErr);
           }
         }
+
+
         if (!moveId) {
           throw new Error("فشل استرداد معرف الطلب بعد الإنشاء");
         }
