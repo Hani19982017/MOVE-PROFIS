@@ -65,21 +65,24 @@ async function startServer() {
         return res.status(400).json({ error: 'invalid id' });
       }
       const { getDb } = await import('../db');
-      const { moveImages } = await import('../../drizzle/schema');
-      const { eq } = await import('drizzle-orm');
       const db = await getDb();
       if (!db) return res.status(503).json({ error: 'db unavailable' });
-      const [row] = await db
-        .select({ data: (moveImages as any).data, mimeType: (moveImages as any).mimeType })
-        .from(moveImages)
-        .where(eq(moveImages.id, id))
-        .limit(1);
+      // The `data` (LONGBLOB) and `mimeType` columns are added at runtime by
+      // the migration and not declared in the Drizzle schema, so we use a
+      // raw query rather than db.select(). Drizzle's mysql2 driver returns
+      // [rows, fields] from execute().
+      const result: any = await (db as any).execute(
+        `SELECT \`data\`, \`mimeType\` FROM \`moveImages\` WHERE \`id\` = ? LIMIT 1`,
+        [id],
+      );
+      const rows = Array.isArray(result?.[0]) ? result[0] : result;
+      const row = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
       if (!row || !row.data) return res.status(404).json({ error: 'not found' });
       res.setHeader('Content-Type', String(row.mimeType || 'image/jpeg'));
       res.setHeader('Cache-Control', 'public, max-age=86400');
       // row.data may be a Buffer already, or come back as Uint8Array depending
       // on the driver. Buffer.from is safe in both cases.
-      return res.end(Buffer.from(row.data as any));
+      return res.end(Buffer.from(row.data));
     } catch (err) {
       console.error('[/api/images/:id] error:', err);
       return res.status(500).json({ error: 'internal error' });
