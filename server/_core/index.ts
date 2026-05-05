@@ -55,6 +55,37 @@ async function startServer() {
   }
   app.use("/uploads", express.static(uploadsDir));
 
+  // Serve images stored as LONGBLOB in the moveImages table. New customer
+  // photos and edit-dialog uploads are saved to the DB (not the filesystem)
+  // so that they survive Render's ephemeral disk wipes between deploys.
+  app.get('/api/images/:id', async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      if (!Number.isFinite(id) || id <= 0) {
+        return res.status(400).json({ error: 'invalid id' });
+      }
+      const { getDb } = await import('../db');
+      const { moveImages } = await import('../../drizzle/schema');
+      const { eq } = await import('drizzle-orm');
+      const db = await getDb();
+      if (!db) return res.status(503).json({ error: 'db unavailable' });
+      const [row] = await db
+        .select({ data: (moveImages as any).data, mimeType: (moveImages as any).mimeType })
+        .from(moveImages)
+        .where(eq(moveImages.id, id))
+        .limit(1);
+      if (!row || !row.data) return res.status(404).json({ error: 'not found' });
+      res.setHeader('Content-Type', String(row.mimeType || 'image/jpeg'));
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      // row.data may be a Buffer already, or come back as Uint8Array depending
+      // on the driver. Buffer.from is safe in both cases.
+      return res.end(Buffer.from(row.data as any));
+    } catch (err) {
+      console.error('[/api/images/:id] error:', err);
+      return res.status(500).json({ error: 'internal error' });
+    }
+  });
+
   registerOAuthRoutes(app);
 
   app.get('/api/auth/admin-login', async (_req, res) => {
@@ -148,7 +179,7 @@ async function startServer() {
 
   // Bind to 0.0.0.0 in production so the host platform can reach the server.
   const host = isProduction ? "0.0.0.0" : "localhost";
-server.listen(port, host, async () => {
+  server.listen(port, host, async () => {
     console.log(`Server running on http://${host}:${port}/`);
     console.log(`[Boot] Auth endpoints registered:`);
     console.log(`  POST http://${host}:${port}/api/auth/admin-login`);
