@@ -3,7 +3,7 @@ import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { customers, moves, moveImages, customerReminders } from "../../drizzle/schema";
 import { storagePut } from "../storage";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { formatCustomerNumber } from "../../shared/customerNumber";
 import { generatePDF } from "../pdfGenerator";
@@ -378,16 +378,40 @@ export const customersRouter = router({
         if (input.images && input.images.length > 0) {
           for (const image of input.images) {
             try {
-              const buffer = Buffer.from(image.data.split(",")[1] || image.data, "base64");
-              const { url, key } = await storagePut(`moves/${moveId}/${Date.now()}-${image.name}`, buffer, "image/jpeg");
+              // Save photos directly to the database as LONGBLOB.
+              // No external storage required — works on Render's free tier
+              // without losing files on every redeploy. Photos are then
+              // served via /api/images/:id.
+              const commaIndex = image.data.indexOf(",");
+              const base64Data = commaIndex >= 0 ? image.data.slice(commaIndex + 1) : image.data;
+              const mimeMatch = image.data.match(/^data:([^;]+);/);
+              const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
+              const buffer = Buffer.from(base64Data, "base64");
 
-              await db.insert(moveImages).values({
+              const inserted = await db.insert(moveImages).values({
                 moveId,
-                imageUrl: url,
-                imageKey: key,
+                imageKey: image.name || `photo-${Date.now()}`,
+                data: buffer,
+                mimeType,
                 imageType: "customer_photos",
                 uploadedBy: ctx.user.id,
-              } as any);
+              } as any).$returningId?.() ?? null;
+
+              // Resolve the new row's id and stamp the public URL.
+              let imageId: number | null = inserted?.[0]?.id ?? null;
+              if (imageId === null) {
+                const [latest] = await db.select({ id: moveImages.id })
+                  .from(moveImages)
+                  .where(eq(moveImages.moveId, moveId))
+                  .orderBy(desc(moveImages.id))
+                  .limit(1);
+                imageId = latest?.id ?? null;
+              }
+              if (imageId !== null) {
+                await db.update(moveImages)
+                  .set({ imageUrl: `/api/images/${imageId}` })
+                  .where(eq(moveImages.id, imageId));
+              }
             } catch (error) {
               console.error("Error uploading image:", error);
             }
