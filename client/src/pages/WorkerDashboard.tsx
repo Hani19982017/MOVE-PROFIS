@@ -630,6 +630,20 @@ export default function WorkerDashboard() {
                       try { return JSON.parse((selectedTask as any).servicesJson || '{}'); } catch { return {}; }
                     })();
                     const yesNo = (v: any) => v === 'Ja' || v === true || v === 1 || v === 'ja';
+                    // Helpers — read a value under any of multiple field
+                    // names. NewCustomer and the MoveDetailDialog edit form
+                    // unfortunately use DIFFERENT keys for the same
+                    // selection (e.g. `auszugsortEmpfangsservice` vs
+                    // `einpackservice`), so we have to check both.
+                    const pickYesNo = (...keys: string[]) =>
+                      keys.some(k => yesNo(sj[k]));
+                    const pickValue = (...keys: string[]) => {
+                      for (const k of keys) {
+                        const v = sj[k];
+                        if (v !== undefined && v !== null && v !== '' && v !== false && v !== 0) return v;
+                      }
+                      return undefined;
+                    };
                     const SRow = ({ label, value }: { label: string; value: string }) => (
                       <div className="flex items-center justify-between rounded-lg border border-[#d97e3a]/15 bg-[#fff2e8] px-3 py-2">
                         <span className="text-sm font-medium text-[#7a461f]">{label}</span>
@@ -638,17 +652,37 @@ export default function WorkerDashboard() {
                     );
                     const rows: React.ReactNode[] = [];
                     // Auszugsort
-                    if (yesNo(sj.auszugsortEmpfangsservice)) rows.push(<SRow key="ae" label="Empfangsservice (Auszug)" value="Ja" />);
-                    if (sj.auszugsortKartons) rows.push(<SRow key="ak" label="Kartons (Auszug)" value={String(sj.auszugsortKartons)} />);
-                    if (yesNo(sj.auszugsortAbbauMoebel)) rows.push(<SRow key="am" label="Abbau von Möbeln" value={sj.auszugsortAbbauMoebelM3 ? `Ja — ${sj.auszugsortAbbauMoebelM3} m³` : 'Ja'} />);
-                    if (yesNo(sj.auszugsortAbbauKueche)) rows.push(<SRow key="aku" label="Abbau von Küche" value={sj.auszugsortAbbauKuecheM3 ? `Ja — ${sj.auszugsortAbbauKuecheM3} m³` : 'Ja'} />);
-                    if (yesNo(sj.auszugsortParkzone)) rows.push(<SRow key="ap" label="Parkzone am Auszugsort" value="Ja" />);
+                    if (pickYesNo('auszugsortEmpfangsservice', 'einpackservice')) {
+                      const k = pickValue('auszugsortEmpfangsserviceKartons', 'einpackKartons', 'auszugsortKartons');
+                      rows.push(<SRow key="ae" label="Empfangsservice (Auszug)" value={k ? `Ja — ${k} Kartons` : 'Ja'} />);
+                    }
+                    if (pickYesNo('auszugsortAbbauMoebel', 'abbauMoebeln')) {
+                      const m = pickValue('auszugsortAbbauMoebelM3', 'abbauMoebelnM3');
+                      rows.push(<SRow key="am" label="Abbau von Möbeln" value={m ? `Ja — ${m} m³` : 'Ja'} />);
+                    }
+                    if (pickYesNo('auszugsortAbbauKueche', 'abbauKueche')) {
+                      const m = pickValue('auszugsortAbbauKuecheM3', 'abbauKuecheM3');
+                      rows.push(<SRow key="aku" label="Abbau von Küche" value={m ? `Ja — ${m} m³` : 'Ja'} />);
+                    }
+                    if (pickYesNo('auszugsortParkzone', 'parkzoneAuszug')) {
+                      rows.push(<SRow key="ap" label="Parkzone am Auszugsort" value="Ja" />);
+                    }
                     // Einzugsort
-                    if (yesNo(sj.einzugsortAuspacksservice)) rows.push(<SRow key="ee" label="Auspacksservice (Einzug)" value="Ja" />);
-                    if (sj.einzugsortKartons) rows.push(<SRow key="ek" label="Kartons (Einzug)" value={String(sj.einzugsortKartons)} />);
-                    if (yesNo(sj.einzugsortAufbauMoebel)) rows.push(<SRow key="em" label="Aufbau von Möbeln" value={sj.einzugsortAufbauMoebelM3 ? `Ja — ${sj.einzugsortAufbauMoebelM3} m³` : 'Ja'} />);
-                    if (yesNo(sj.einzugsortAufbauKueche)) rows.push(<SRow key="eku" label="Aufbau von Küche" value={sj.einzugsortAufbauKuecheM3 ? `Ja — ${sj.einzugsortAufbauKuecheM3} m³` : 'Ja'} />);
-                    if (yesNo(sj.einzugsortParkzone)) rows.push(<SRow key="ep" label="Parkzone am Einzugsort" value="Ja" />);
+                    if (pickYesNo('einzugsortAuspacksservice', 'auspackservice')) {
+                      const k = pickValue('einzugsortAuspacksserviceKartons', 'auspackKartons', 'einzugsortKartons');
+                      rows.push(<SRow key="ee" label="Auspacksservice (Einzug)" value={k ? `Ja — ${k} Kartons` : 'Ja'} />);
+                    }
+                    if (pickYesNo('einzugsortAufbauMoebel', 'aufbauMoebeln')) {
+                      const m = pickValue('einzugsortAufbauMoebelM3', 'aufbauMoebelnM3');
+                      rows.push(<SRow key="em" label="Aufbau von Möbeln" value={m ? `Ja — ${m} m³` : 'Ja'} />);
+                    }
+                    if (pickYesNo('einzugsortAufbauKueche', 'aufbauKueche')) {
+                      const m = pickValue('einzugsortAufbauKuecheM3', 'aufbauKuecheM3');
+                      rows.push(<SRow key="eku" label="Aufbau von Küche" value={m ? `Ja — ${m} m³` : 'Ja'} />);
+                    }
+                    if (pickYesNo('einzugsortParkzone', 'parkzoneEinzug')) {
+                      rows.push(<SRow key="ep" label="Parkzone am Einzugsort" value="Ja" />);
+                    }
                     // Kartons
                     if (sj.umzugskartons) rows.push(<SRow key="uk" label="Umzugskartons" value={String(sj.umzugskartons)} />);
                     if (sj.kleiderkartons) rows.push(<SRow key="kk" label="Kleiderkartons" value={String(sj.kleiderkartons)} />);
@@ -660,13 +694,30 @@ export default function WorkerDashboard() {
                     if (yesNo(sj.klaviertransport)) rows.push(<SRow key="kl" label="Klaviertransport" value={sj.klavierGross || 'Ja'} />);
                     if (sj.schwerTransport && sj.schwerTransport !== 'Kein') rows.push(<SRow key="st" label="Schwerer Transport" value={String(sj.schwerTransport)} />);
                     if (yesNo(sj.lampen)) rows.push(<SRow key="la" label="Lampen" value={[sj.lampenOrt, sj.lampenStueck ? sj.lampenStueck + ' Stück' : ''].filter(Boolean).join(' — ') || 'Ja'} />);
-                    if (yesNo(sj.einlagerungMoebel)) rows.push(<SRow key="el" label="Einlagerung von Möbeln" value={sj.einlagerungPrice ? sj.einlagerungPrice + ' €' : 'Ja'} />);
+                    if (pickYesNo('einlagerungMoebel', 'einlagerung')) {
+                      rows.push(<SRow key="el" label="Einlagerung von Möbeln" value={sj.einlagerungPrice ? sj.einlagerungPrice + ' €' : 'Ja'} />);
+                    }
                     if (yesNo(sj.endreinigung)) rows.push(<SRow key="er" label="Endreinigung" value="Ja" />);
-                    if (yesNo(sj.bohrDuebel)) rows.push(<SRow key="bd" label="Bohr- und Dübelarbeit" value={sj.bohrPunkt || 'Ja'} />);
-                    if (yesNo(sj.entsorgungMoebel)) rows.push(<SRow key="en" label="Entsorgung von Möbeln" value={[sj.entsorgungType, sj.entsorgungM3 ? sj.entsorgungM3 + ' m³' : ''].filter(Boolean).join(' — ') || 'Ja'} />);
-                    if (sj.ausmist && sj.ausmist !== 'Nein') rows.push(<SRow key="au" label="Ausmist" value={sj.ausmistStunde ? `${sj.ausmist} — ${sj.ausmistStunde} Std.` : String(sj.ausmist)} />);
+                    if (pickYesNo('bohrDuebel', 'bohrarbeit')) {
+                      const p = pickValue('bohrPunkt', 'bohrarbeitPunkt');
+                      rows.push(<SRow key="bd" label="Bohr- und Dübelarbeit" value={p ? String(p) : 'Ja'} />);
+                    }
+                    if (pickYesNo('entsorgungMoebel', 'entsorgung')) {
+                      rows.push(<SRow key="en" label="Entsorgung von Möbeln" value={[sj.entsorgungType, sj.entsorgungM3 ? sj.entsorgungM3 + ' m³' : ''].filter(Boolean).join(' — ') || 'Ja'} />);
+                    }
+                    {
+                      const a = pickValue('ausmist', 'aussenlift');
+                      const aStr = a ? String(a) : '';
+                      if (aStr && aStr !== 'Nein') {
+                        const stunden = pickValue('ausmistStunde', 'aussenliftStunde');
+                        rows.push(<SRow key="au" label="Ausmist / Außenlift" value={stunden ? `${aStr} — ${stunden} Std.` : aStr} />);
+                      }
+                    }
                     if (yesNo(sj.anschlussWaschmaschine)) rows.push(<SRow key="aw" label="Anschluss der Waschmaschine" value="Ja" />);
-                    if (sj.sonstigeLeistung) rows.push(<SRow key="sl" label="Sonstige Leistung" value={sj.sonstigeLeistungPrice ? `${sj.sonstigeLeistung} — ${sj.sonstigeLeistungPrice} €` : String(sj.sonstigeLeistung)} />);
+                    if (sj.sonstigeLeistung) {
+                      const price = pickValue('sonstigeLeistungPrice', 'sonstigePrice');
+                      rows.push(<SRow key="sl" label="Sonstige Leistung" value={price ? `${sj.sonstigeLeistung} — ${price} €` : String(sj.sonstigeLeistung)} />);
+                    }
                     return (
                       <div className="space-y-2">
                         {rows.length > 0 ? rows : <p className="text-sm text-gray-400 text-center py-2">لا توجد خدمات إضافية مسجّلة</p>}
