@@ -25,10 +25,9 @@ async function getColumnInfo(table: string, column: string): Promise<ColumnInfo 
   const db = await getDb();
   if (!db) return null;
   try {
-    // drizzle's mysql2 wrapper exposes execute() that returns
-    // [rows, fields] – we just need the rows.
+    const { sql } = await import("drizzle-orm");
     const result: any = await (db as any).execute(
-      `SHOW COLUMNS FROM \`${table}\` WHERE Field = '${column}'`
+      sql.raw(`SHOW COLUMNS FROM \`${table}\` WHERE Field = '${column}'`)
     );
     const rows = Array.isArray(result?.[0]) ? result[0] : result;
     return Array.isArray(rows) && rows.length > 0 ? (rows[0] as ColumnInfo) : null;
@@ -41,6 +40,8 @@ async function getColumnInfo(table: string, column: string): Promise<ColumnInfo 
 async function fixMovesDateColumns(): Promise<void> {
   const db = await getDb();
   if (!db) return;
+
+  const { sql } = await import("drizzle-orm");
 
   for (const col of ["pickupDate", "deliveryDate"] as const) {
     const info = await getColumnInfo("moves", col);
@@ -62,19 +63,12 @@ async function fixMovesDateColumns(): Promise<void> {
     );
 
     try {
-      // Step 1: backfill any existing NULL/zero rows with a sensible default
-      // so the NOT NULL constraint can be applied.
       await (db as any).execute(
-        `UPDATE \`moves\` SET \`${col}\` = COALESCE(\`${col}\`, NOW()) WHERE \`${col}\` IS NULL`
+        sql.raw(`UPDATE \`moves\` SET \`${col}\` = COALESCE(\`${col}\`, NOW()) WHERE \`${col}\` IS NULL`)
       );
-
-      // Step 2: change the column type. We use TIMESTAMP NOT NULL DEFAULT
-      // CURRENT_TIMESTAMP so existing/future inserts that somehow miss the
-      // value still get a valid timestamp instead of failing.
       await (db as any).execute(
-        `ALTER TABLE \`moves\` MODIFY COLUMN \`${col}\` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP`
+        sql.raw(`ALTER TABLE \`moves\` MODIFY COLUMN \`${col}\` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP`)
       );
-
       console.log(`[migrations] moves.${col} fixed successfully`);
     } catch (alterErr) {
       console.error(`[migrations] Failed to ALTER moves.${col}:`, alterErr);
@@ -88,15 +82,26 @@ async function fixMovesDateColumns(): Promise<void> {
  * with a known-broken column than not start at all.
  */
 async function fixMoveImagesColumns(): Promise<void> {
+  console.log("[migrations] >>> running fixMoveImagesColumns");
   const db = await getDb();
-  if (!db) return;
+  if (!db) {
+    console.log("[migrations] >>> db not available, skipping moveImages migration");
+    return;
+  }
+
+  const { sql } = await import("drizzle-orm");
 
   // Inspect existing columns once
   let existingCols: ColumnInfo[] = [];
   try {
-    const result: any = await (db as any).execute(`SHOW COLUMNS FROM \`moveImages\``);
+    const result: any = await (db as any).execute(
+      sql.raw(`SHOW COLUMNS FROM \`moveImages\``)
+    );
     const rows = Array.isArray(result?.[0]) ? result[0] : result;
     existingCols = Array.isArray(rows) ? (rows as ColumnInfo[]) : [];
+    console.log(
+      `[migrations] moveImages has ${existingCols.length} columns: ${existingCols.map(c => c.Field).join(", ")}`
+    );
   } catch (err) {
     console.error("[migrations] could not list moveImages columns:", err);
     return;
@@ -104,45 +109,49 @@ async function fixMoveImagesColumns(): Promise<void> {
 
   const colNames = new Set(existingCols.map(c => c.Field));
 
-  // 1. Add `data` LONGBLOB column if missing — used to store the binary
-  //    bytes of customer/damage/complaint photos. Without it, every photo
-  //    insert that uses .data fails silently because Drizzle's `as any`
-  //    cast makes TS happy but MySQL still rejects unknown columns.
+  // 1. Add `data` LONGBLOB column if missing.
   if (!colNames.has("data")) {
     try {
-      await (db as any).execute(`ALTER TABLE \`moveImages\` ADD COLUMN \`data\` LONGBLOB NULL`);
-      console.log("[migrations] moveImages.data column added");
+      await (db as any).execute(
+        sql.raw(`ALTER TABLE \`moveImages\` ADD COLUMN \`data\` LONGBLOB NULL`)
+      );
+      console.log("[migrations] >>> moveImages.data column added");
     } catch (err) {
       console.error("[migrations] failed to add moveImages.data:", err);
     }
+  } else {
+    console.log("[migrations] moveImages.data already exists");
   }
 
   // 2. Add `mimeType` column if missing.
   if (!colNames.has("mimeType")) {
     try {
       await (db as any).execute(
-        `ALTER TABLE \`moveImages\` ADD COLUMN \`mimeType\` VARCHAR(80) NOT NULL DEFAULT 'image/jpeg'`
+        sql.raw(`ALTER TABLE \`moveImages\` ADD COLUMN \`mimeType\` VARCHAR(80) NOT NULL DEFAULT 'image/jpeg'`)
       );
-      console.log("[migrations] moveImages.mimeType column added");
+      console.log("[migrations] >>> moveImages.mimeType column added");
     } catch (err) {
       console.error("[migrations] failed to add moveImages.mimeType:", err);
     }
+  } else {
+    console.log("[migrations] moveImages.mimeType already exists");
   }
 
-  // 3. Make `imageUrl` nullable (or with a default) — historically the
-  //    schema required it NOT NULL, but our new flow saves the photo to
-  //    the DB first and then updates imageUrl with `/api/images/<id>`
-  //    in a second statement. The intermediate insert must succeed.
+  // 3. Make `imageUrl` nullable.
   const imageUrlCol = existingCols.find(c => c.Field === "imageUrl");
   if (imageUrlCol && imageUrlCol.Null === "NO" && imageUrlCol.Default === null) {
     try {
       await (db as any).execute(
-        `ALTER TABLE \`moveImages\` MODIFY COLUMN \`imageUrl\` TEXT NULL`
+        sql.raw(`ALTER TABLE \`moveImages\` MODIFY COLUMN \`imageUrl\` TEXT NULL`)
       );
-      console.log("[migrations] moveImages.imageUrl made nullable");
+      console.log("[migrations] >>> moveImages.imageUrl made nullable");
     } catch (err) {
       console.error("[migrations] failed to relax moveImages.imageUrl:", err);
     }
+  } else {
+    console.log(
+      `[migrations] moveImages.imageUrl OK (Null=${imageUrlCol?.Null ?? "?"}, Default=${imageUrlCol?.Default ?? "null"})`
+    );
   }
 }
 
