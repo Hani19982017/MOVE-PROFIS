@@ -390,6 +390,10 @@ export const customersRouter = router({
 
               const inserted = await db.insert(moveImages).values({
                 moveId,
+                // imageUrl is required (NOT NULL) on legacy DB schemas, so
+                // we send a placeholder. Right after the insert we update
+                // it to the real `/api/images/<id>` URL once we know id.
+                imageUrl: "",
                 imageKey: image.name || `photo-${Date.now()}`,
                 data: buffer,
                 mimeType,
