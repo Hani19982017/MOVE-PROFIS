@@ -164,7 +164,7 @@ export const appRouter = router({
           .from(moveImages)
           .where(eq(moveImages.imageType, 'customer_photos'))
           .groupBy(moveImages.moveId);
-      const photoCountMap: Record<number, number> = {};
+        const photoCountMap: Record<number, number> = {};
         for (const row of photoCounts) {
           photoCountMap[row.moveId] = Number(row.count);
         }
@@ -235,9 +235,9 @@ export const appRouter = router({
         if (data.deliveryElevatorCapacity !== undefined) updateData.deliveryElevatorCapacity = data.deliveryElevatorCapacity;
         if (data.deliveryParkingDistance !== undefined) updateData.deliveryParkingDistance = data.deliveryParkingDistance;
         // Only update dates if a non-empty value is provided. Empty values
-// would produce Invalid Date and corrupt the NOT NULL columns.
-if (data.pickupDate) updateData.pickupDate = new Date(data.pickupDate);
-if (data.deliveryDate) updateData.deliveryDate = new Date(data.deliveryDate);
+        // would produce Invalid Date and corrupt the NOT NULL columns.
+        if (data.pickupDate) updateData.pickupDate = new Date(data.pickupDate);
+        if (data.deliveryDate) updateData.deliveryDate = new Date(data.deliveryDate);
         // grossPrice is stored as decimal(15,2) in euros — preserve 2-decimal precision, don't round to int
         if (data.grossPrice !== undefined) updateData.grossPrice = Math.round(data.grossPrice * 100) / 100;
         if (data.volume !== undefined) updateData.volume = data.volume;
@@ -269,8 +269,8 @@ if (data.deliveryDate) updateData.deliveryDate = new Date(data.deliveryDate);
           const { assertBranchAccess } = await import('./_core/context');
           assertBranchAccess(ctx.user, move.branchId);
           const [customer] = await db.select().from(customers).where(eq(customers.id, move.customerId)).limit(1);
-          // Fetch the customer's reminder (if any) so the edit dialog
-          // can display and edit reminderDate alongside the order fields.
+          // Fetch the customer's reminder (if any) so the edit dialog can show
+          // and edit reminderDate alongside the rest of the order fields.
           const [reminder] = await db
             .select()
             .from(customerReminders)
@@ -287,7 +287,7 @@ if (data.deliveryDate) updateData.deliveryDate = new Date(data.deliveryDate);
             ...img,
             imageUrl: img.imageUrl || `/api/images/${img.id}`,
           }));
-         return { move, customer: customer ?? null, images, reminder: reminder ?? null };
+          return { move, customer: customer ?? null, images, reminder: reminder ?? null };
         } catch (e) {
           console.error("Error fetching move:", e);
           return null;
@@ -631,11 +631,11 @@ if (data.deliveryDate) updateData.deliveryDate = new Date(data.deliveryDate);
           if (input.distance !== undefined) moveUpdate.distance = input.distance;
           if (input.anfahrt !== undefined) moveUpdate.anfahrt = input.anfahrt;
           // Only update pickup/delivery dates if a non-empty value is provided.
-// Empty/null values must NEVER overwrite existing dates because
-// pickupDate/deliveryDate are NOT NULL columns — sending null would
-// silently corrupt the row to '0000-00-00 00:00:00' on MySQL.
-if (input.pickupDate) moveUpdate.pickupDate = new Date(input.pickupDate);
-if (input.deliveryDate) moveUpdate.deliveryDate = new Date(input.deliveryDate);
+          // Empty/null values must NEVER overwrite existing dates because
+          // pickupDate/deliveryDate are NOT NULL columns — sending null would
+          // silently corrupt the row to '0000-00-00 00:00:00' on MySQL.
+          if (input.pickupDate) moveUpdate.pickupDate = new Date(input.pickupDate);
+          if (input.deliveryDate) moveUpdate.deliveryDate = new Date(input.deliveryDate);
           if (input.pickupAddress !== undefined) moveUpdate.pickupAddress = input.pickupAddress;
           if (input.pickupFloor !== undefined) moveUpdate.pickupFloor = input.pickupFloor;
           if (input.pickupElevatorCapacity !== undefined) moveUpdate.pickupElevatorCapacity = input.pickupElevatorCapacity;
@@ -986,7 +986,14 @@ if (input.deliveryDate) moveUpdate.deliveryDate = new Date(input.deliveryDate);
 
           for (const photo of allPhotos) {
             if (!customerPhotosByMove[photo.moveId]) customerPhotosByMove[photo.moveId] = [];
-            customerPhotosByMove[photo.moveId].push({ id: photo.id, imageUrl: photo.imageUrl, imageKey: photo.imageKey });
+            // imageUrl may be empty for photos stored as LONGBLOB in the
+            // moveImages table (the inline upload path used by NewCustomer).
+            // In that case we serve the binary via /api/images/:id, the same
+            // fallback used in moves.getById.
+            const url = photo.imageUrl && photo.imageUrl.length > 0
+              ? photo.imageUrl
+              : `/api/images/${photo.id}`;
+            customerPhotosByMove[photo.moveId].push({ id: photo.id, imageUrl: url, imageKey: photo.imageKey });
           }
 
           const sortedTasks = relatedTasks.sort((a, b) => {
