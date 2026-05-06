@@ -400,8 +400,6 @@ export const customersRouter = router({
                 // it to the real `/api/images/<id>` URL once we know id.
                 imageUrl: "",
                 imageKey: image.name || `photo-${Date.now()}`,
-                data: buffer,
-                mimeType,
                 imageType: "customer_photos",
                 uploadedBy: ctx.user.id,
               } as any).$returningId?.() ?? null;
@@ -418,12 +416,20 @@ export const customersRouter = router({
               }
               console.log(`[customers.create] inserted image with id=${imageId}`);
               if (imageId !== null) {
-                await db.update(moveImages)
-                  .set({ imageUrl: `/api/images/${imageId}` })
-                  .where(eq(moveImages.id, imageId));
+                // The `data` LONGBLOB and `mimeType` columns are added at
+                // runtime by the migration and are NOT declared in the Drizzle
+                // schema, so Drizzle silently drops them on insert. We write
+                // them with a raw SQL UPDATE which Drizzle has to honour.
+                const { sql } = await import("drizzle-orm");
+                await (db as any).execute(
+                  sql`UPDATE \`moveImages\`
+                      SET \`data\` = ${buffer},
+                          \`mimeType\` = ${mimeType},
+                          \`imageUrl\` = ${`/api/images/${imageId}`}
+                      WHERE \`id\` = ${imageId}`
+                );
                 // Verify the data was stored
                 try {
-                  const { sql } = await import("drizzle-orm");
                   const verify: any = await (db as any).execute(
                     sql.raw(`SELECT \`id\`, LENGTH(\`data\`) AS dataLen, \`mimeType\`, \`imageUrl\` FROM \`moveImages\` WHERE \`id\` = ${imageId}`)
                   );
