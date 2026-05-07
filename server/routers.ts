@@ -960,11 +960,15 @@ export const appRouter = router({
             customerLastName: customers.lastName,
             customerPhone: customers.phone,
             customerEmail: customers.email,
-            customerSitz: customers.sitz,
+            // Resolve the branch name from the branches table via the
+            // customer's `branchId` rather than the legacy free-text
+            // `customers.sitz` column, which is rarely populated correctly.
+            customerSitz: branches.name,
             customerBezahlt: customers.bezahlt,
           })
           .from(moves)
           .leftJoin(customers, eq(moves.customerId, customers.id))
+          .leftJoin(branches, eq(customers.branchId, branches.id))
           .where(and(
             or(
               eq(moves.status, 'confirmed'),
