@@ -25,12 +25,12 @@ function EmptyBranches({ onAdd }: { onAdd: () => void }) {
   return (
     <div className="py-20 text-center">
       <Building2 size={56} className="mx-auto mb-4 text-gray-300" />
-      <h3 className="mb-2 text-lg font-semibold text-gray-700">لا توجد فروع بعد</h3>
+      <h3 className="mb-2 text-lg font-semibold text-gray-700">Noch keine Filialen</h3>
       <p className="mx-auto mb-6 max-w-sm text-sm text-gray-500">
-        أضف أول فرع فعّال لشركتك لتتمكن من توزيع العملاء والطلبات والمستخدمين حسب المدينة.
+        Fügen Sie die erste aktive Filiale Ihres Unternehmens hinzu, um Kunden, Aufträge Benutzer nach Stadt zu verteilen.
       </p>
       <Button onClick={onAdd} className="bg-[#1a4d6d] text-white hover:bg-[#14394f]">
-        <Plus size={15} className="mr-1" /> إضافة أول فرع
+        <Plus size={15} className="mr-1" /> Erste Filiale hinzufügen
       </Button>
     </div>
   );
@@ -59,17 +59,17 @@ export default function BranchesManagement() {
   const deactivateMutation = trpc.branches.deactivate.useMutation({
     onSuccess: async () => {
       await invalidateBranchesList(utils);
-      toast.success("تم تعطيل الفرع مع الاحتفاظ بجميع بياناته");
+      toast.success("Filiale deaktiviert — alle Daten bleiben erhalten");
     },
-    onError: (e) => toast.error(`خطأ: ${e.message}`),
+    onError: (e) => toast.error(`Fehler: ${e.message}`),
   });
 
   const reactivateMutation = trpc.branches.reactivate.useMutation({
     onSuccess: async () => {
       await invalidateBranchesList(utils);
-      toast.success("تمت إعادة تفعيل الفرع بنجاح");
+      toast.success("Filiale erfolgreich reaktiviert");
     },
-    onError: (e) => toast.error(`خطأ: ${e.message}`),
+    onError: (e) => toast.error(`Fehler: ${e.message}`),
   });
 
   const branches = useMemo(() => (branchesQuery.data as any[] | undefined) ?? [], [branchesQuery.data]);
@@ -96,7 +96,7 @@ export default function BranchesManagement() {
   const handleToggleActive = (branch: any) => {
     if (branch.isActive) {
       const confirmed = confirm(
-        `هل تريد تعطيل فرع "${branch.name}"؟\nسيبقى الفرع محفوظاً داخل النظام ولن تُحذف البيانات المرتبطة به.`
+        `Filiale "${branch.name}" wirklich reaktivieren?\nDie Filiale bleibt im System gespeichert verknüpfte Daten werden nicht gelöscht.`
       );
       if (confirmed) {
         deactivateMutation.mutate({ branchId: branch.id });
@@ -104,7 +104,7 @@ export default function BranchesManagement() {
       return;
     }
 
-    const confirmed = confirm(`هل تريد إعادة تفعيل فرع "${branch.name}"؟`);
+    const confirmed = confirm(`? Filiale "${branch.name}" wirklich reaktivieren?`);
     if (confirmed) {
       reactivateMutation.mutate({ branchId: branch.id });
     }
@@ -121,7 +121,7 @@ export default function BranchesManagement() {
   if (!isAuthenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Button onClick={() => (window.location.href = getLoginUrl())}>تسجيل الدخول</Button>
+        <Button onClick={() => (window.location.href = getLoginUrl())}>Anmelden</Button>
       </div>
     );
   }
@@ -131,12 +131,12 @@ export default function BranchesManagement() {
       <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
         <div className="max-w-md rounded-2xl border border-red-200 bg-white p-8 text-center shadow-sm">
           <ShieldAlert size={42} className="mx-auto mb-4 text-red-500" />
-          <h1 className="mb-2 text-lg font-bold text-gray-900">هذا القسم مخصص للمدير فقط</h1>
+          <h1 className="mb-2 text-lg font-bold text-gray-900">Dieser Bereich ist nur für Administratoren</h1>
           <p className="text-sm leading-7 text-gray-600">
-            لا يمكن لأي مستخدم غير المدير الوصول إلى إدارة الفروع أو تعديل حالتها.
+            Kein anderer Benutzer außer dem Administrator kann auf die Filialverwaltung zugreifen oder sie bearbeiten.
           </p>
           <Button onClick={() => navigate("/")} className="mt-5 bg-[#1a4d6d] text-white hover:bg-[#14394f]">
-            العودة للرئيسية
+            Zurück zur Startseite
           </Button>
         </div>
       </div>
@@ -151,16 +151,16 @@ export default function BranchesManagement() {
             onClick={() => navigate("/")}
             className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
           >
-            <ArrowLeft size={16} /> الرئيسية
+            <ArrowLeft size={16} /> Startseite
           </button>
-          <h1 className="text-lg font-bold text-gray-900">إدارة الفروع</h1>
+          <h1 className="text-lg font-bold text-gray-900">Filialverwaltung</h1>
           <span className="rounded-full border border-[#d97e3a]/25 bg-[#fff2e8] px-2 py-0.5 text-xs font-medium text-[#bd682b]">
-            للمدير فقط
+            Nur für Administrator
           </span>
           <button
             onClick={() => setShowInfo(!showInfo)}
             className="text-gray-400 transition-colors hover:text-[#1a4d6d]"
-            title="شرح القسم"
+            title="Bereichsbeschreibung"
           >
             <Info size={18} />
           </button>
@@ -170,7 +170,7 @@ export default function BranchesManagement() {
           className="flex items-center gap-1 bg-[#1a4d6d] text-white hover:bg-[#14394f]"
           size="sm"
         >
-          <Plus size={14} /> إضافة فرع جديد
+          <Plus size={14} /> Neue Filiale hinzufügen
         </Button>
       </div>
 
@@ -178,17 +178,17 @@ export default function BranchesManagement() {
         {showInfo && (
           <div className="mb-6 rounded-xl border border-[#1a4d6d]/15 bg-[#eef4f8] p-5">
             <h2 className="mb-2 flex items-center gap-2 font-bold text-[#1a4d6d]">
-              <Info size={18} /> كيف نستفيد من قسم الفروع؟
+              <Info size={18} /> Wie nutzen wir den Filialen-Bereich?
             </h2>
             <div className="space-y-2 text-sm leading-7 text-[#355d74]">
               <p>
-                هذا القسم مخصص لضبط المدن أو المراكز التشغيلية مثل <strong>Move Frankfurt</strong> و<strong>Move Berlin</strong> مع الحفاظ على جميع البيانات حتى عند إيقاف الفرع.
+                Dieser Bereich dient zur Verwaltung von Städten oder Betriebszentren wie <strong>Move Frankfurt</strong> und <strong>Move Berlin</strong> — alle Daten bleiben auch beim Deaktivieren einer Filiale erhalten.
               </p>
               <p>
-                عندما تعطل فرعاً، تبقى بياناته محفوظة ولا تضيع العملاء أو المستخدمون أو السجلات المرتبطة به. ويمكنك لاحقاً إعادة تفعيله بضغطة واحدة.
+                Wenn Sie eine Filiale deaktivieren, bleiben alle Daten erhalten — Kunden, Benutzer und verknüpfte Einträge gehen nicht verloren. Sie können jederzeit mit einem Klick reaktiviert werden.
               </p>
               <p className="font-medium text-[#d97e3a]">
-                أفضل استخدام عملي لهذا القسم هو تنظيم الفروع النشطة، إيقاف الفروع المؤقتة بأمان، وربط المستخدمين والعملاء بالمدينة الصحيحة دون حذف نهائي.
+                Der sinnvollste Einsatz dieses Bereichs ist die Verwaltung aktiver Filialen, das sichere Pausieren temporärer Filialen sowie die Verknüpfung von Benutzern Kunden mit der richtigen Stadt 
               </p>
             </div>
           </div>
@@ -200,28 +200,28 @@ export default function BranchesManagement() {
               <CardContent className="pt-4 pb-3 text-center">
                 <Building2 size={22} className="mx-auto mb-1 text-[#1a4d6d]" />
                 <p className="text-2xl font-bold">{branches.length}</p>
-                <p className="text-xs text-gray-500">إجمالي الفروع</p>
+                <p className="text-xs text-gray-500">Gesamt Filialen</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-4 pb-3 text-center">
                 <Power size={22} className="mx-auto mb-1 text-[#1a4d6d]" />
                 <p className="text-2xl font-bold">{activeBranches.length}</p>
-                <p className="text-xs text-gray-500">فروع نشطة</p>
+                <p className="text-xs text-gray-500">Aktive Filialen</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-4 pb-3 text-center">
                 <RotateCcw size={22} className="mx-auto mb-1 text-[#d97e3a]" />
                 <p className="text-2xl font-bold">{inactiveBranches.length}</p>
-                <p className="text-xs text-gray-500">فروع معطلة قابلة للإعادة</p>
+                <p className="text-xs text-gray-500">Deaktivierte Filialen (reaktivierbar)</p>
               </CardContent>
             </Card>
           </div>
         )}
 
         {branchesQuery.isLoading ? (
-          <div className="py-16 text-center text-gray-400">جاري التحميل...</div>
+          <div className="py-16 text-center text-gray-400">Wird geladen...</div>
         ) : branches.length === 0 ? (
           <EmptyBranches onAdd={openNew} />
         ) : (
@@ -247,7 +247,7 @@ export default function BranchesManagement() {
                           : "bg-gray-100 text-gray-500"
                       }`}
                     >
-                      {branch.isActive ? "نشط" : "معطل"}
+                      {branch.isActive ? "aktiv" : "Inaktiv"}
                     </span>
                   </div>
 
@@ -265,7 +265,7 @@ export default function BranchesManagement() {
                       </div>
                     )}
                     {!branch.address && !branch.phone && (
-                      <p className="text-xs italic text-gray-400">لم تُضف تفاصيل إضافية بعد</p>
+                      <p className="text-xs italic text-gray-400">Noch keine weiteren Details hinzugefügt</p>
                     )}
                   </div>
 
@@ -276,7 +276,7 @@ export default function BranchesManagement() {
                       className="flex flex-1 items-center gap-1 text-xs"
                       onClick={() => openEdit(branch)}
                     >
-                      <Edit2 size={12} /> تعديل
+                      <Edit2 size={12} /> Bearbeiten
                     </Button>
                     <Button
                       variant="outline"
@@ -290,7 +290,7 @@ export default function BranchesManagement() {
                       disabled={deactivateMutation.isPending || reactivateMutation.isPending}
                     >
                       {branch.isActive ? <Power size={12} /> : <RotateCcw size={12} />}
-                      {branch.isActive ? "تعطيل" : "إعادة التفعيل"}
+                      {branch.isActive ? "Deaktivieren" : "Reaktivieren"}
                     </Button>
                   </div>
                 </CardContent>
