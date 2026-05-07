@@ -153,6 +153,21 @@ async function fixMoveImagesColumns(): Promise<void> {
       `[migrations] moveImages.imageUrl OK (Null=${imageUrlCol?.Null ?? "?"}, Default=${imageUrlCol?.Default ?? "null"})`
     );
   }
+
+  // 4. Give `uploadedBy` a DEFAULT 0 so inserts that omit it don't crash.
+  const uploadedByCol = existingCols.find(c => c.Field === "uploadedBy");
+  if (uploadedByCol && uploadedByCol.Default === null) {
+    try {
+      await (db as any).execute(
+        sql.raw(`ALTER TABLE \`moveImages\` MODIFY COLUMN \`uploadedBy\` INT NOT NULL DEFAULT 0`)
+      );
+      console.log("[migrations] >>> moveImages.uploadedBy DEFAULT 0 set");
+    } catch (err) {
+      console.error("[migrations] failed to set moveImages.uploadedBy default:", err);
+    }
+  } else {
+    console.log(`[migrations] moveImages.uploadedBy already has default`);
+  }
 }
 
 export async function runRuntimeMigrations(): Promise<void> {
