@@ -743,7 +743,7 @@ export default function NewCustomer() {
               <select className="w-full border rounded px-3 py-2 text-sm" value={status} onChange={(e) => setStatus(e.target.value)}>
                 <option>Angaben vollständig</option>
                 <option>Nachverfolgen</option>
-                <option>Online-besichtigungstermin</option>
+                <option>Online-besichtigungtermin</option>
                 <option>Besichtigungtermin</option>
                 <option>Absagen</option>
               </select>
