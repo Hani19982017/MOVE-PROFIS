@@ -962,15 +962,12 @@ export const appRouter = router({
             customerLastName: customers.lastName,
             customerPhone: customers.phone,
             customerEmail: customers.email,
-            // Resolve the branch name from the branches table via the
-            // customer's `branchId` rather than the legacy free-text
-            // `customers.sitz` column, which is rarely populated correctly.
-            customerSitz: branches.name,
+            customerSitz: customers.sitz,
+            customerBranchId: customers.branchId,
             customerBezahlt: customers.bezahlt,
           })
           .from(moves)
           .leftJoin(customers, eq(moves.customerId, customers.id))
-          .leftJoin(branches, eq(customers.branchId, branches.id))
           .where(and(
             or(
               eq(moves.status, 'confirmed'),
@@ -982,6 +979,16 @@ export const appRouter = router({
         const moveIds = result.map(r => r.id);
         let customerPhotosByMove: Record<number, { id: number; imageUrl: string; imageKey: string }[]> = {};
         let taskMetaByMove: Record<number, { taskId: number | null; taskNotes: string | null }> = {};
+
+        // Resolve branch names from branchIds returned in the result.
+        // We do this as a separate query to avoid a Drizzle join bug when
+        // selecting columns from a left-joined table by name.
+        const uniqueBranchIds = [...new Set(result.map(r => r.customerBranchId).filter((id): id is number => id != null))];
+        const branchNameById: Record<number, string> = {};
+        if (uniqueBranchIds.length > 0) {
+          const branchRows = await db.select({ id: branches.id, name: branches.name }).from(branches);
+          for (const b of branchRows) branchNameById[b.id] = b.name;
+        }
 
         if (moveIds.length > 0) {
           const moveConditions = or(...moveIds.map(id => eq(moveImages.moveId, id)));
@@ -1036,6 +1043,11 @@ export const appRouter = router({
           customerPhotos: customerPhotosByMove[move.id] || [],
           taskId: taskMetaByMove[move.id]?.taskId ?? null,
           taskNotes: taskMetaByMove[move.id]?.taskNotes ?? null,
+          // Resolved branch name: prefer the branches table lookup, fall back
+          // to the legacy customers.sitz free-text field.
+          customerSitz: (move.customerBranchId ? branchNameById[move.customerBranchId] : null)
+            || move.customerSitz
+            || "",
         }));
       } catch (e) {
         console.error('Error fetching worker moves:', e);
