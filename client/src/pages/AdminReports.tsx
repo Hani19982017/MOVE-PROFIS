@@ -253,7 +253,7 @@ function RevenueBar({ data }: { data: { monthName: string; totalRevenue: number;
   if (!hasAnyRevenue) {
     return (
       <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-[#d7e5ee] bg-[#f8fbfd] text-sm text-slate-500">
-        لا توجد بيانات إيرادات أو أضرار للشهور المختارة بعد.
+        Es liegen noch keine Umsatz- oder Schadensdaten für die ausgewählten Monate vor.
       </div>
     );
   }
@@ -298,11 +298,11 @@ export default function AdminReports() {
 
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [selectedMonth, setSelectedMonth] = useState<number>(currentMonth);
-  const [filterAll, setFilterAll] = useState(false); // false = الشهر الحالي, true = السنة كاملة
+  const [filterAll, setFilterAll] = useState(false); // false = aktueller Monat, true = ganzes Jahr
   const [isExporting, setIsExporting] = useState(false);
-  const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null); // null = كل الفروع
+  const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null); // null = Alle Filialen
 
-  // جلب قائمة الفروع (للمدير العام فقط)
+  // Filialliste abrufen (nur Hauptadmin)
   const branchesQuery = trpc.branches.list.useQuery(undefined, {
     enabled: user?.role === 'admin',
   });
@@ -367,11 +367,11 @@ export default function AdminReports() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-red-500" />
-              غير مصرح
+              Nicht autorisiert
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600">هذا القسم متاح فقط للمديرين</p>
+            <p className="text-gray-600">Dieser Bereich ist nur für Administratoren zugänglich</p>
           </CardContent>
         </Card>
       </div>
@@ -396,7 +396,7 @@ export default function AdminReports() {
           {/* Filter */}
           <div className="flex items-center gap-2 flex-wrap">
 
-            {/* Branch Selector - للمدير العام فقط */}
+            {/* Filialauswahl - nur Hauptadmin */}
             {isAdmin && (
               <Select
                 value={selectedBranchId === null ? "all" : String(selectedBranchId)}
@@ -477,7 +477,7 @@ export default function AdminReports() {
           </div>
         ) : s ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {/* <KpiCard title="Gesamtumsatz (Brutto)" value={fmt(s.totalRevenue)} sub={`${s.totalMoves} Aufträge gesamt`} icon={Euro} color="bg-[#1a4d6d]" /> */}
+            <KpiCard title="Gesamtumsatz (Brutto)" value={fmt(s.totalRevenue)} sub={`${s.totalMoves} Aufträge gesamt`} icon={Euro} color="bg-[#1a4d6d]" />
             <KpiCard title="Davon bezahlt" value={fmt(s.paidRevenue ?? 0)} sub={`${s.paidMoves} bezahlte Aufträge`} icon={CheckCircle} color="bg-green-600" />
             <KpiCard title="Gesamtaufträge" value={String(s.totalMoves)} sub={`${s.completedMoves} abgeschlossen`} icon={Package} color="bg-[#1a4d6d]" />
             <KpiCard title="Offene Zahlungen" value={String(s.unpaidMoves)} sub={`Aufträge unbezahlt`} icon={XCircle} color="bg-amber-500" />
@@ -604,7 +604,7 @@ export default function AdminReports() {
                     <AlertTriangle size={32} className="mx-auto mb-2 text-gray-300" />
                     <div>
                       <p className="font-medium text-gray-700">Keine Schadensfälle im gewählten Zeitraum</p>
-                      <p className="text-sm text-gray-500 mt-1">بمجرد تسجيل ضرر داخل الطلب سيظهر هنا تلقائيًا مع الحالة والتكلفة.</p>
+                      <p className="text-sm text-gray-500 mt-1">Sobald ein Schaden in einem Auftrag erfasst wird, erscheint er hier automatisch mit Status Kosten.</p>
                     </div>
                     <div className="flex items-center justify-center gap-3">
                       <Button variant="outline" onClick={() => navigate('/orders')} className="border-[#1a4d6d] text-[#1a4d6d] hover:bg-[#eaf2f7]">
@@ -709,7 +709,7 @@ export default function AdminReports() {
                     <MessageSquare size={32} className="mx-auto mb-2 text-gray-300" />
                     <div>
                       <p className="font-medium text-gray-700">Keine Beschwerden im gewählten Zeitraum</p>
-                      <p className="text-sm text-gray-500 mt-1">عند إدخال شكوى ضمن تفاصيل الطلب ستظهر هنا مباشرة مع الشدة والمرفقات.</p>
+                      <p className="text-sm text-gray-500 mt-1">Wenn eine Beschwerde über die Auftragsdetails eingegeben wird, erscheint sie hier direkt mit Schweregrad Anhängen.</p>
                     </div>
                     <div className="flex items-center justify-center gap-3">
                       <Button variant="outline" onClick={() => navigate('/orders')} className="border-[#d97e3a] text-[#8f4f1f] hover:bg-[#fff2e8]">
