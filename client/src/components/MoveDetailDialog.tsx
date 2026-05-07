@@ -846,9 +846,9 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
               <Field label="Auftragsstatus">
                 {ro ? <div className="w-full border rounded px-3 py-2 text-sm bg-gray-50">{moveStatus}</div>
                     : <select className="w-full border rounded px-3 py-2 text-sm" value={moveStatus} onChange={e => setMoveStatus(e.target.value)}>
-                        <option value="pending">Ausstehend</option><option value="confirmed">Registriert Auf Apex</option>
-                        <option value="in_progress">Abgeschlossen</option>
-                        <option value="cancelled">Storniert</option>
+                        <option value="Ausstehend">Ausstehend</option><option value="Registriert Auf Apex">Registriert Auf Apex</option>
+                        <option value="Abgeschlossen">Abgeschlossen</option>
+                        <option value="Storniert">Storniert</option>
                       </select>}
               </Field>
             </div>
