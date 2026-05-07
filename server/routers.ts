@@ -152,13 +152,13 @@ export const appRouter = router({
       const db = await getDb();
       if (!db) return [];
       try {
-        // تصفية حسب الفرع: المدير يمكنه اختيار فرع أو رؤية الكل، الباقون يرون فرعهم فقط
+        // Filter nach Filiale: Admin kann Filiale wählen oder alle sehen, andere nur ihre eigene
         const { getEffectiveBranchId } = await import('./_core/context');
         const effectiveBranchId = getEffectiveBranchId(ctx.user, input?.branchId);
         const allMoves = effectiveBranchId
           ? await db.select().from(moves).where(eq(moves.branchId, effectiveBranchId))
           : await db.select().from(moves);
-        // جلب عدد صور العميل (customer_photos) لكل طلب دفعة واحدة
+        // Anzahl Kundenfotos pro Auftrag in einem Schwung abrufen
         const photoCounts = await db
           .select({ moveId: moveImages.moveId, count: sql<number>`COUNT(*)` })
           .from(moveImages)
@@ -222,7 +222,7 @@ export const appRouter = router({
         // Branch isolation: verify the move belongs to the user's branch
         const { assertBranchAccess } = await import('./_core/context');
         const [existingMove] = await db.select({ branchId: moves.branchId }).from(moves).where(eq(moves.id, moveId)).limit(1);
-        if (!existingMove) throw new Error("الطلب غير موجود");
+        if (!existingMove) throw new Error("Auftrag nicht gefunden");
         assertBranchAccess(ctx.user, existingMove.branchId);
 
         const updateData: Record<string, unknown> = {};
@@ -252,11 +252,11 @@ export const appRouter = router({
           return { success: true };
         } catch (e) {
           console.error("Error updating move:", e);
-          throw new Error("فشل تحديث الطلب");
+          throw new Error("Aktualisierung fehlgeschlagen Auftrag");
         }
       }),
 
-    // جلب طلب واحد مع بيانات العميل والصور
+    // Einzelnen Auftrag mit Kundendaten und Fotos abrufen
     getById: protectedProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input, ctx }) => {
@@ -294,7 +294,7 @@ export const appRouter = router({
         }
       }),
 
-    // حذف طلب (للمدير فقط)
+    // Auftrag löschen (nur Admin)
     delete: protectedProcedure
       .input(z.object({ moveId: z.number() }))
       .mutation(async ({ input, ctx }) => {
@@ -306,7 +306,7 @@ export const appRouter = router({
           // Branch isolation: verify the move belongs to the user's branch
           const { assertBranchAccess } = await import('./_core/context');
           const [existingMove] = await db.select({ branchId: moves.branchId }).from(moves).where(eq(moves.id, input.moveId)).limit(1);
-          if (!existingMove) throw new Error("الطلب غير موجود");
+          if (!existingMove) throw new Error("Auftrag nicht gefunden");
           assertBranchAccess(ctx.user, existingMove.branchId);
 
           await db.delete(moveImages).where(eq(moveImages.moveId, input.moveId)).catch(() => {});
@@ -314,18 +314,18 @@ export const appRouter = router({
           return { success: true };
         } catch (e) {
           console.error("Error deleting move:", e);
-          throw new Error("فشل حذف الطلب");
+          throw new Error("Fehlgeschlagen Auftrag löschen");
         }
       }),
 
-    // تحديث شامل للطلب وبيانات العميل (مع جميع الحقول)
+    // Vollständige Aktualisierung von Auftrag und Kundendaten (alle Felder)
     generateInvoice: protectedProcedure
       .input(z.object({ moveId: z.number() }))
       .mutation(async ({ input, ctx }) => {
         const db = await getDb();
         if (!db) throw new Error('DB not available');
 
-        // جلب بيانات الطلب مع بيانات العميل والفرع
+        // Auftragsdaten mit Kundendaten und Filiale abrufen
         const moveResult = await db
           .select()
           .from(moves)
@@ -343,39 +343,39 @@ export const appRouter = router({
         const { assertBranchAccess } = await import('./_core/context');
         assertBranchAccess(ctx.user, move.branchId);
 
-        // تحديد تاريخ الفاتورة
+        // Rechnungsdatum festlegen
         const today = new Date();
         const invoiceDate = today.toLocaleDateString('de-DE', {
           day: '2-digit', month: '2-digit', year: 'numeric'
         });
 
-        // تحديد تاريخ الانتقال
+        // Umzugsdatum festlegen
         const moveDate = move.pickupDate
           ? new Date(move.pickupDate).toLocaleDateString('de-DE', {
               day: '2-digit', month: '2-digit', year: 'numeric'
             })
           : 'N/A';
 
-        // تحديد تاريخ الدفع
+        // Zahlungsdatum festlegen
         const paymentDate = move.bezahltDatum
           ? new Date(move.bezahltDatum).toLocaleDateString('de-DE', {
               day: '2-digit', month: '2-digit', year: 'numeric'
             })
           : undefined;
 
-        // عنوان العميل (من عنوان الانتقال)
+        // Kundenadresse (aus Umzugsadresse)
         const customerAddress = move.pickupAddress || 'N/A';
 
-        // وصف الخدمة
+        // Beschreibung der Dienstleistung
         const serviceType = move.moveType || 'Umzug';
         const fromCity = move.pickupAddress ? move.pickupAddress.split(',').pop()?.trim() || '' : '';
         const toCity = move.deliveryAddress ? move.deliveryAddress.split(',').pop()?.trim() || '' : '';
         const serviceDescription = `${serviceType}sleistung${fromCity && toCity ? ` von ${fromCity} nach ${toCity}` : ''} – Leistungsdatum: ${moveDate}`;
 
-        // المبلغ الإجمالي
+        // Gesamtbetrag
         const totalAmount = getInvoiceTotalCents(move);
 
-        // معلومات الشركة (hardcoded - يمكن تعديلها لاحقاً)
+        // Firmendaten (hartkodiert - können später bearbeitet werden)
         const branchName = branch?.name || 'Check Umzug';
         const branchAddress = branch?.address || branch?.city || 'Deutschland';
         const branchPhone = branch?.phone || '';
@@ -387,9 +387,9 @@ export const appRouter = router({
           companyAddress: branchAddress,
           companyPhone: branchPhone,
           companyEmail: branchEmail,
-          companyTaxId: undefined, // يُضاف لاحقاً
+          companyTaxId: undefined, // wird später hinzugefügt
 
-          // Bank info (يُضاف لاحقاً)
+          // Bankdaten (werden später hinzugefügt)
           bankName: undefined,
           bankIban: undefined,
           bankBic: undefined,
@@ -419,7 +419,7 @@ export const appRouter = router({
         const pdfBuffer = await generatePDF(html);
         const base64 = pdfBuffer.toString('base64');
 
-        // حفظ سجل الفاتورة في جدول invoices تلقائياً
+        // Rechnungsdatensatz automatisch in invoices speichern
         try {
           const existingInvoice = await db
             .select({ id: invoices.id })
@@ -440,7 +440,7 @@ export const appRouter = router({
               paymentDate: invoiceData.isPaid && move.bezahltDatum ? new Date(move.bezahltDatum) : undefined,
             });
           } else {
-            // تحديث السجل الموجود
+            // Bestehenden Datensatz aktualisieren
             await db.update(invoices)
               .set({
                 customerName: invoiceData.customerName,
@@ -453,7 +453,7 @@ export const appRouter = router({
           }
         } catch (invoiceErr) {
           console.error('Failed to save invoice record:', invoiceErr);
-          // لا نوقف العملية إذا فشل حفظ السجل
+          // Vorgang nicht abbrechen, wenn Speichern fehlschlägt
         }
 
         return {
@@ -464,7 +464,7 @@ export const appRouter = router({
     fullUpdate: protectedProcedure
       .input(z.object({
         moveId: z.number(),
-        // بيانات العميل
+        // Kundendaten
         title: z.string().optional(),
         name: z.string().optional(),
         email: z.string().optional(),
@@ -482,7 +482,7 @@ export const appRouter = router({
         angebotPerPost: z.boolean().optional(),
         bezahlt: z.boolean().optional(),
         mitFotos: z.boolean().optional(),
-        // بيانات الطلب الأساسية
+        // Grundlegende Auftragsdaten
         moveCode: z.string().optional(),
         moveType: z.string().optional(),
         status: z.enum(["pending","confirmed","in_progress","completed","cancelled"]).optional(),
@@ -538,7 +538,7 @@ export const appRouter = router({
         extraPreis: z.number().optional(),
         extraBemerkungen: z.string().optional(),
         // Audits
-        bezahltVon: z.string().optional(),
+        bezahltvon: z.string().optional(),
         betzhalKunde: z.string().optional(),
         istBezahlt: z.boolean().optional(),
         paymentWay: z.string().optional(),
@@ -549,7 +549,7 @@ export const appRouter = router({
         rechnungAusgestellt: z.boolean().optional(),
         rechnungBetrag: z.number().optional(),
         rechnungNummer: z.string().optional(),
-        // صور جديدة
+        // Neue Fotos
         images: z.array(z.object({ name: z.string(), data: z.string() })).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -558,13 +558,13 @@ export const appRouter = router({
         const db = await getDb();
         if (!db) throw new Error("Database not available");
         try {
-          // جلب الطلب للحصول على customerId
+          // Auftrag abrufen, um customerId zu erhalten
           const [existingMove] = await db.select().from(moves).where(eq(moves.id, input.moveId)).limit(1);
-          if (!existingMove) throw new Error("الطلب غير موجود");
+          if (!existingMove) throw new Error("Auftrag nicht gefunden");
           // Branch isolation
           const { assertBranchAccess } = await import('./_core/context');
           assertBranchAccess(ctx.user, existingMove.branchId);
-          // تحديث بيانات العميل
+          // Aktualisieren Kundendaten
           const customerUpdate: Record<string, unknown> = {};
           if (input.title !== undefined) customerUpdate.title = input.title;
           if (input.name !== undefined) {
@@ -620,7 +620,7 @@ export const appRouter = router({
           } catch (e) {
             console.error("Failed to sync reminder:", e);
           }
-          // تحديث بيانات الطلب
+          // Aktualisieren Auftragsdaten
           const moveUpdate: Record<string, unknown> = {};
           moveUpdate.moveCode = formatCustomerNumber(existingMove.customerId);
           if (input.moveType !== undefined) moveUpdate.moveType = input.moveType;
@@ -676,7 +676,7 @@ export const appRouter = router({
           if (input.extraPreis !== undefined) moveUpdate.extraPreis = input.extraPreis;
           if (input.extraBemerkungen !== undefined) moveUpdate.extraBemerkungen = input.extraBemerkungen;
           // Audits
-          if (input.bezahltVon !== undefined) moveUpdate.bezahltVon = input.bezahltVon;
+          if (input.bezahltvon !== undefined) moveUpdate.bezahltvon = input.bezahltvon;
           if (input.betzhalKunde !== undefined) moveUpdate.betzhalKunde = input.betzhalKunde;
           if (input.istBezahlt !== undefined) {
             moveUpdate.istBezahlt = input.istBezahlt ? 1 : 0;
@@ -702,10 +702,10 @@ export const appRouter = router({
           // Warnings bubbled back to the UI so the user knows when automation didn't fully succeed.
           const warnings: string[] = [];
 
-          // إنشاء مهام تلقائية عند تأكيد الطلب
+          // Automatisch Aufgaben beim Bestätigen des Auftrags erstellen
           if (isMoveBeingConfirmed && existingMove.status !== 'confirmed') {
             try {
-              // جلب العاملين في نفس الفرع
+              // Mitarbeiter in derselben Filiale abrufen
               const workers = await db
                 .select()
                 .from(users)
@@ -717,9 +717,9 @@ export const appRouter = router({
                 .limit(5);
 
               if (workers.length === 0) {
-                warnings.push('لم يتم إنشاء مهام للعمال: لا يوجد عمال نشطون في هذا الفرع. يرجى إضافة عمال من قسم إدارة المستخدمين.');
+                warnings.push('Es konnten keine Mitarbeiteraufgaben erstellt werden: Keine aktiven Mitarbeiter in dieser Filiale. Bitte fügen Sie Mitarbeiter über die Benutzerverwaltung hinzu.');
               } else if (workers.length === 1) {
-                warnings.push('تم إنشاء مهمة الاستلام فقط: يوجد عامل واحد في الفرع. يلزم عامل ثانٍ لمهمة التسليم.');
+                warnings.push('Nur die Empfangsaufgabe wurde erstellt: Es gibt nur einen Mitarbeiter in dieser Filiale. Für die Lieferaufgabe wird ein zweiter Mitarbeiter benötigt.');
               }
 
               const existingTasks = await db
@@ -728,7 +728,7 @@ export const appRouter = router({
                 .where(eq(tasks.moveId, input.moveId));
               const existingTaskTypes = new Set(existingTasks.map((task) => task.taskType || ''));
 
-              // إنشاء مهام للعاملين
+              // Aufgaben für die Mitarbeiter erstellen
               if (workers.length > 0 && !existingTaskTypes.has('pickup')) {
                 await db.insert(tasks).values({
                   moveId: input.moveId,
@@ -754,14 +754,14 @@ export const appRouter = router({
               }
             } catch (error) {
               console.error('Error creating tasks:', error);
-              warnings.push('حدث خطأ أثناء إنشاء مهام العمال، تم حفظ تأكيد الطلب فقط.');
+              warnings.push('Beim Erstellen der Mitarbeiteraufgaben ist ein Fehler aufgetreten, nur die Auftragsbestätigung wurde gespeichert.');
             }
           }
 
-          // إنشاء فاتورة تلقائية عند تسجيل الدفع
+          // Rechnung automatisch beim Erfassen der Zahlung erstellen
           if (input.istBezahlt === true) {
             try {
-              // جلب بيانات الطلب مع بيانات العميل والفرع
+              // Auftragsdaten mit Kundendaten und Filiale abrufen
               const moveResult = await db
                 .select()
                 .from(moves)
@@ -793,7 +793,7 @@ export const appRouter = router({
                       ? new Date(mv.bezahltDatum)
                       : new Date();
 
-                  // تحقق من عدم وجود فاتورة مسبقاً
+                  // Prüfen, dass noch keine Rechnung existiert
                   const existingInv = await db
                     .select({ id: invoices.id })
                     .from(invoices)
@@ -813,7 +813,7 @@ export const appRouter = router({
                       paymentDate,
                     });
                   } else {
-                    // تحديث الفاتورة الموجودة
+                    // Bestehende Rechnung aktualisieren
                     await db.update(invoices)
                       .set({
                         customerName,
@@ -829,7 +829,7 @@ export const appRouter = router({
               }
             } catch (invErr) {
               console.error('Auto-invoice creation failed:', invErr);
-              // لا نوقف العملية إذا فشل إنشاء الفاتورة
+              // Vorgang nicht abbrechen, wenn Rechnungserstellung fehlschlägt
             }
           }
 
@@ -853,6 +853,8 @@ export const appRouter = router({
                   imageUrl: "",
                   imageKey: img.name || `photo-${Date.now()}`,
                   imageType: 'customer_photos',
+                  // uploadedBy is NOT NULL with no default — always provide a value.
+                  uploadedBy: ctx.user?.id ?? 0,
                 } as any).$returningId?.() ?? null;
 
                 // Build a stable URL the frontend can use to display the photo.
@@ -884,19 +886,19 @@ export const appRouter = router({
                 }
               } catch (e) {
                 console.error('Error saving image to DB:', e);
-                warnings.push(`فشل حفظ الصورة: ${img.name || 'unknown'}`);
+                warnings.push(`Foto konnte nicht gespeichert werden: ${img.name || 'unknown'}`);
               }
             }
           }
           return { success: true, warnings };
         } catch (e) {
           console.error("Error in fullUpdate:", e);
-          throw new Error("فشل تحديث البيانات");
+          throw new Error("Aktualisieren der Daten fehlgeschlagen");
         }
       }),
   }),
   workerMoves: router({
-    // جلب مهام العامل الحالية مع بيانات العميل
+    // Aktuelle Mitarbeiteraufgaben mit Kundendaten abrufen
     list: protectedProcedure
       .input(z.object({ branchId: z.number().optional() }).optional())
       .query(async ({ ctx, input }) => {
@@ -951,7 +953,7 @@ export const appRouter = router({
             bankBetrag: moves.bankBetrag,
             barBetrag: moves.barBetrag,
             rechnungNummer: moves.rechnungNummer,
-            bezahltVon: moves.bezahltVon,
+            bezahltvon: moves.bezahltvon,
             betzhalKunde: moves.betzhalKunde,
             bezahltDatum: moves.bezahltDatum,
             rechnungBetrag: moves.rechnungBetrag,
@@ -1040,7 +1042,7 @@ export const appRouter = router({
         return [];
       }
     }),
-    // تقرير تلف (Schaden)
+    // Schadensbericht
     reportSchaden: protectedProcedure
       .input(z.object({
         moveId: z.number(),
@@ -1056,7 +1058,7 @@ export const appRouter = router({
         // Branch isolation
         const { assertBranchAccess } = await import('./_core/context');
         const [existingMove] = await db.select({ branchId: moves.branchId }).from(moves).where(eq(moves.id, input.moveId)).limit(1);
-        if (!existingMove) throw new Error('الطلب غير موجود');
+        if (!existingMove) throw new Error('Auftrag nicht gefunden');
         assertBranchAccess(ctx.user, existingMove.branchId);
         const { storagePut } = await import('./storage');
         let imageUrls: string[] = [];
@@ -1081,7 +1083,7 @@ export const appRouter = router({
         } as any).where(eq(moves.id, input.moveId));
         return { success: true };
       }),
-    // تقرير شكوى (Beschwerde)
+    // Beschwerdebericht
     reportBeschwerde: protectedProcedure
       .input(z.object({
         moveId: z.number(),
@@ -1097,7 +1099,7 @@ export const appRouter = router({
         // Branch isolation
         const { assertBranchAccess } = await import('./_core/context');
         const [existingMove] = await db.select({ branchId: moves.branchId }).from(moves).where(eq(moves.id, input.moveId)).limit(1);
-        if (!existingMove) throw new Error('الطلب غير موجود');
+        if (!existingMove) throw new Error('Auftrag nicht gefunden');
         assertBranchAccess(ctx.user, existingMove.branchId);
         const { storagePut } = await import('./storage');
         let imageUrls: string[] = [];
@@ -1122,7 +1124,7 @@ export const appRouter = router({
         } as any).where(eq(moves.id, input.moveId));
         return { success: true };
       }),
-    // إتمام المهمة (زر الإنجاز)
+    // Aufgabe abschließen (Abschluss-Button)
     complete: protectedProcedure
       .input(z.object({ moveId: z.number() }))
       .mutation(async ({ input, ctx }) => {
@@ -1131,7 +1133,7 @@ export const appRouter = router({
         // Branch isolation
         const { assertBranchAccess } = await import('./_core/context');
         const [existingMove] = await db.select({ branchId: moves.branchId }).from(moves).where(eq(moves.id, input.moveId)).limit(1);
-        if (!existingMove) throw new Error('الطلب غير موجود');
+        if (!existingMove) throw new Error('Auftrag nicht gefunden');
         assertBranchAccess(ctx.user, existingMove.branchId);
         await db.update(moves).set({
           status: 'completed',
@@ -1139,12 +1141,12 @@ export const appRouter = router({
         } as any).where(eq(moves.id, input.moveId));
         return { success: true };
       }),
-    // تحديث بيانات الدفع من قِبل العامل
+    // Zahlungsdaten durch den Mitarbeiter aktualisieren
     updatePayment: protectedProcedure
       .input(z.object({
         moveId: z.number(),
-        bankBetrag: z.number().optional(),   // مبلغ التحويل البنكي (€)
-        barBetrag: z.number().optional(),    // مبلغ الكاش (€)
+        bankBetrag: z.number().optional(),   // Banküberweisungsbetrag (€)
+        barBetrag: z.number().optional(),    // Barbetrag (€)
         paymentWay: z.string().optional(),   // Bank / Bar / Bank and Bar
         istBezahlt: z.number().optional(),   // 0 = Nein, 1 = Ja
         bezahltDatum: z.string().optional(), // ISO date string
@@ -1155,7 +1157,7 @@ export const appRouter = router({
         // Branch isolation
         const { assertBranchAccess } = await import('./_core/context');
         const [existingMove] = await db.select({ branchId: moves.branchId }).from(moves).where(eq(moves.id, input.moveId)).limit(1);
-        if (!existingMove) throw new Error('الطلب غير موجود');
+        if (!existingMove) throw new Error('Auftrag nicht gefunden');
         assertBranchAccess(ctx.user, existingMove.branchId);
         const updateData: Record<string, unknown> = {};
         if (input.bankBetrag !== undefined) updateData.bankBetrag = Math.round(input.bankBetrag * 100);
@@ -1169,7 +1171,7 @@ export const appRouter = router({
         await db.update(moves).set(updateData as any).where(eq(moves.id, input.moveId));
         return { success: true };
       }),
-    // تحديث ملاحظات المهمة
+    // Aufgaben-Notizen aktualisieren
     updateNotes: protectedProcedure
       .input(z.object({
         taskId: z.number(),
@@ -1186,7 +1188,7 @@ export const appRouter = router({
       }),
   }),
   templates: router({
-    // جلب جميع القوالب
+    // Alle Vorlagen abrufen
     list: protectedProcedure.query(async () => {
       const db = await getDb();
       if (!db) return [];
@@ -1197,7 +1199,7 @@ export const appRouter = router({
         return [];
       }
     }),
-    // إنشاء أو تحديث قالب (upsert بالاسم)
+    // Vorlage erstellen oder aktualisieren (upsert nach Name)
     upsert: protectedProcedure
       .input(z.object({
         id: z.number().optional(),
@@ -1228,7 +1230,7 @@ export const appRouter = router({
           return { success: true };
         }
       }),
-    // إدراج القوالب الافتراضية إذا لم تكن موجودة
+    // Standardvorlagen einfügen, falls nicht vorhanden
     seedDefaults: protectedProcedure
       .input(z.object({ templates: z.array(z.object({ name: z.string(), content: z.string() })) }))
       .mutation(async ({ input, ctx }) => {
@@ -1247,7 +1249,7 @@ export const appRouter = router({
         return { inserted: toInsert.length };
       }),
   }),
-  users: router({    // إنشاء مستخدم جديد من قِبَل المدير أو مدير الفرع
+  users: router({    // Neuen Benutzer durch Admin oder Filialleiter erstellen
     create: protectedProcedure
       .input(z.object({
         name: z.string().min(1),
@@ -1259,11 +1261,11 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const allowedRoles = ['admin']; // branch_manager is read-only
         if (!allowedRoles.includes(ctx.user.role)) throw new Error('FORBIDDEN');
-        // مدير الفرع ينشئ مستخدمين في فرعه فقط ولا يستطيع إنشاء مدير عام
+        // Filialleiter erstellt Benutzer nur in eigener Filiale, kann keine Hauptadmins anlegen
         if (ctx.user.role === 'branch_manager') {
-          if (input.role === 'admin') throw new Error('FORBIDDEN: لا يمكنك إنشاء مدير عام');
-          // يجبر الفرع على فرع مدير الفرع
-          if (!ctx.user.branchId) throw new Error('FORBIDDEN: لا يوجد فرع مخصص لك');
+          if (input.role === 'admin') throw new Error('FORBIDDEN: Sie können keinen Hauptadministrator erstellen');
+          // Filiale wird auf die des Filialleiters fixiert
+          if (!ctx.user.branchId) throw new Error('FORBIDDEN: Ihnen ist keine Filiale zugewiesen');
           input.branchId = ctx.user.branchId;
         }
         const { createLocalUser } = await import('./_core/localAuth');
@@ -1277,7 +1279,7 @@ export const appRouter = router({
         if (!result.success) throw new Error(result.error || 'Fehler beim Erstellen');
         return { success: true, userId: result.userId };
       }),
-    // تحديث كلمة سر مستخدم محلي (للمدير العام ومدير الفرع)
+    // Lokales Benutzerpasswort aktualisieren (Hauptadmin und Filialleiter)
     updatePassword: protectedProcedure
       .input(z.object({
         userId: z.number(),
@@ -1288,18 +1290,18 @@ export const appRouter = router({
         if (!allowedRoles.includes(ctx.user.role)) throw new Error('FORBIDDEN');
         const db = await getDb();
         if (!db) throw new Error('DB not available');
-        // مدير الفرع يتحقق أن المستخدم في فرعه
+        // Filialleiter prüft, ob der Benutzer in seiner Filiale ist
         if (ctx.user.role === 'branch_manager') {
           const [targetUser] = await db.select().from(users).where(eq(users.id, input.userId)).limit(1);
           if (!targetUser || targetUser.branchId !== ctx.user.branchId) {
-            throw new Error('FORBIDDEN: المستخدم ليس في فرعك');
+            throw new Error('FORBIDDEN: Der Benutzer gehört nicht zu Ihrer Filiale');
           }
         }
         const { updateLocalUserPassword } = await import('./_core/localAuth');
         await updateLocalUserPassword(input.userId, input.newPassword);
         return { success: true };
       }),
-    // قائمة المستخدمين (للمدير العام ومدير الفرع)
+    // Benutzerliste (Hauptadmin und Filialleiter)
     list: protectedProcedure.query(async ({ ctx }) => {
       const allowedRoles = ['admin', 'branch_manager'];
       if (!allowedRoles.includes(ctx.user.role)) {
@@ -1308,7 +1310,7 @@ export const appRouter = router({
       const db = await getDb();
       if (!db) return [];
       try {
-        // مدير الفرع يرى فقط مستخدمي فرعه (بدون المدراء العاميين) - فقط النشطين
+        // Filialleiter sieht nur eigene Filialnutzer (ohne Hauptadmins), nur aktive
          if (ctx.user.role === 'branch_manager' && ctx.user.branchId) {
           return await db.select().from(users)
             .where(and(
@@ -1317,13 +1319,13 @@ export const appRouter = router({
               sql`${users.isActive} = 1`
             ));
         }
-        // المدير العام يرى النشطين فقط
+        // Hauptadministrator sieht nur aktive
         return await db.select().from(users).where(sql`${users.isActive} = 1`);     } catch (e) {
         console.error('Error fetching users:', e);
         return [];
       }
     }),
-    // تغيير دور مستخدم (للمدير العام ومدير الفرع)
+    // Benutzerrolle ändern (Hauptadmin und Filialleiter)
     updateRole: protectedProcedure
       .input(z.object({
         userId: z.number(),
@@ -1332,18 +1334,18 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const allowedRoles = ['admin']; // branch_manager is read-only
         if (!allowedRoles.includes(ctx.user.role)) throw new Error('FORBIDDEN');
-        if (input.userId === ctx.user.id) throw new Error('لا يمكنك تغيير دورك الخاص');
-        // مدير الفرع لا يستطيع تعيين دور مدير عام
+        if (input.userId === ctx.user.id) throw new Error('Sie können Ihre eigene Rolle nicht ändern');
+        // Filialleiter kann keine Hauptadmin-Rolle vergeben
         if (ctx.user.role === 'branch_manager' && input.role === 'admin') {
-          throw new Error('FORBIDDEN: لا يمكنك تعيين دور مدير عام');
+          throw new Error('FORBIDDEN: Sie können keine Hauptadministrator-Rolle vergeben');
         }
         const db = await getDb();
         if (!db) throw new Error('DB not available');
-        // مدير الفرع يتحقق أن المستخدم في فرعه
+        // Filialleiter prüft, ob der Benutzer in seiner Filiale ist
         if (ctx.user.role === 'branch_manager') {
           const [targetUser] = await db.select().from(users).where(eq(users.id, input.userId)).limit(1);
           if (!targetUser || targetUser.branchId !== ctx.user.branchId) {
-            throw new Error('FORBIDDEN: المستخدم ليس في فرعك');
+            throw new Error('FORBIDDEN: Der Benutzer gehört nicht zu Ihrer Filiale');
           }
         }
         await db.update(users)
@@ -1351,7 +1353,7 @@ export const appRouter = router({
           .where(eq(users.id, input.userId));
         return { success: true };
       }),
-    // تعديل بيانات مستخدم (للمدير العام ومدير الفرع)
+    // Benutzerdaten bearbeiten (Hauptadmin und Filialleiter)
     updateProfile: protectedProcedure
       .input(z.object({
         userId: z.number(),
@@ -1365,13 +1367,13 @@ export const appRouter = router({
         if (!allowedRoles.includes(ctx.user.role)) throw new Error('FORBIDDEN');
         const db = await getDb();
         if (!db) throw new Error('DB not available');
-        // مدير الفرع يتحقق أن المستخدم في فرعه ولا يغير الفرع
+        // Filialleiter prüft Benutzer in eigener Filiale und ändert die Filiale nicht
         if (ctx.user.role === 'branch_manager') {
           const [targetUser] = await db.select().from(users).where(eq(users.id, input.userId)).limit(1);
           if (!targetUser || targetUser.branchId !== ctx.user.branchId) {
-            throw new Error('FORBIDDEN: المستخدم ليس في فرعك');
+            throw new Error('FORBIDDEN: Der Benutzer gehört nicht zu Ihrer Filiale');
           }
-          // مدير الفرع لا يستطيع تغيير الفرع
+          // Filialleiter kann die Filiale nicht ändern
           delete (input as any).branchId;
         }
         const updateData: Record<string, unknown> = {};
@@ -1379,32 +1381,32 @@ export const appRouter = router({
         if (input.username !== undefined) {
           const normalizedUsername = input.username.trim();
           if (!normalizedUsername) {
-            throw new Error('اسم المستخدم مطلوب');
+            throw new Error('Benutzername Erforderlich');
           }
           const { findLocalUserByUsername } = await import('./_core/localAuth');
           const existingUser = await findLocalUserByUsername(normalizedUsername);
           if (existingUser && existingUser.id !== input.userId) {
-            throw new Error('اسم المستخدم مستخدم بالفعل');
+            throw new Error('Benutzername bereits vergeben');
           }
           updateData.username = normalizedUsername;
         }
         if (input.branchId !== undefined) updateData.branchId = input.branchId;
         if (Object.keys(updateData).length === 0) {
-          return { success: true, message: 'لا تغييرات' };
+          return { success: true, message: 'Keine Änderungen' };
         }
         await db.update(users)
           .set(updateData)
           .where(eq(users.id, input.userId));
         return { success: true };
       }),
-    // تحديث الفرع للعامل (للعامل نفسه فقط)
+    // Filiale des Mitarbeiters aktualisieren (nur durch ihn selbst)
     updateBranch: protectedProcedure
       .input(z.object({
         userId: z.number(),
         branchId: z.number(),
       }))
       .mutation(async ({ ctx, input }) => {
-        // العامل يستطيع تحديث فرعه فقط
+        // Mitarbeiter kann nur seine eigene Filiale aktualisieren
         if (ctx.user.id !== input.userId && ctx.user.role !== 'admin') {
           throw new Error('FORBIDDEN');
         }
@@ -1415,23 +1417,23 @@ export const appRouter = router({
           .where(eq(users.id, input.userId));
         return { success: true };
       }),
-    // حذف مستخدم (للمدير العام ومدير الفرع)
+    // Benutzer löschen (Hauptadmin und Filialleiter)
     delete: protectedProcedure
       .input(z.object({ userId: z.number() }))
       .mutation(async ({ ctx, input }) => {
         const allowedRoles = ['admin']; // branch_manager is read-only
         if (!allowedRoles.includes(ctx.user.role)) throw new Error('FORBIDDEN');
-        if (input.userId === ctx.user.id) throw new Error('لا يمكنك حذف حسابك الخاص');
+        if (input.userId === ctx.user.id) throw new Error('Sie können Ihr eigenes Konto nicht löschen');
         const db = await getDb();
         if (!db) throw new Error('DB not available');
-        // مدير الفرع يتحقق أن المستخدم في فرعه
+        // Filialleiter prüft, ob der Benutzer in seiner Filiale ist
         if (ctx.user.role === 'branch_manager') {
           const [targetUser] = await db.select().from(users).where(eq(users.id, input.userId)).limit(1);
           if (!targetUser || targetUser.branchId !== ctx.user.branchId) {
-            throw new Error('FORBIDDEN: المستخدم ليس في فرعك');
+            throw new Error('FORBIDDEN: Der Benutzer gehört nicht zu Ihrer Filiale');
           }
         }
-        // Soft delete: تعطيل الحساب بدلاً من الحذف الفعلي لمنع إعادة الإنشاء عبر OAuth
+        // Soft delete: Konto deaktivieren statt physisch zu löschen, um Neuerstellung über OAuth zu verhindern
         await db.update(users).set({ isActive: 0 } as any).where(eq(users.id, input.userId));
         return { success: true };
       }),
@@ -1439,7 +1441,7 @@ export const appRouter = router({
 
   // ===== INVOICES ROUTER =====
   invoices: router({
-    // جلب قائمة الفواتير مع بحث وتصفية (للمدير وفريق المبيعات فقط)
+    // Rechnungsliste mit Suche und Filter abrufen (nur Admin und Vertrieb)
     getAll: protectedProcedure
       .input(z.object({
         search: z.string().optional(),
@@ -1452,7 +1454,7 @@ export const appRouter = router({
         const db = await getDb();
         if (!db) throw new Error('DB not available');
 
-        // التحقق من الصلاحيات
+        // Berechtigungen prüfen
         const allowedRoles = ['admin', 'sales']; // branch_manager is read-only
         if (!allowedRoles.includes(ctx.user.role)) {
           throw new Error('Zugriff verweigert');
@@ -1463,12 +1465,12 @@ export const appRouter = router({
 
         const conditions: any[] = [];
 
-        // فلتر الفرع
+        // Filiale-Filter
         if (effectiveBranchId) {
           conditions.push(eq(invoices.branchId, effectiveBranchId));
         }
 
-        // فلتر البحث
+        // Such-Filter
         if (input.search) {
           conditions.push(
             or(
@@ -1478,7 +1480,7 @@ export const appRouter = router({
           );
         }
 
-        // فلتر حالة الدفع
+        // Zahlungsstatus-Filter
         if (input.isPaid === 'paid') {
           conditions.push(eq(invoices.isPaid, 1));
         } else if (input.isPaid === 'unpaid') {
@@ -1500,7 +1502,7 @@ export const appRouter = router({
         return await query;
       }),
 
-    // إحصائيات الفواتير
+    // Rechnungsstatistiken
     getStats: protectedProcedure
       .input(z.object({
         branchId: z.number().nullable().optional(),
@@ -1542,7 +1544,7 @@ export const appRouter = router({
         };
       }),
 
-    // إعادة توليد PDF لفاتورة موجودة
+    // PDF für eine bestehende Rechnung neu erstellen
     regenerate: protectedProcedure
       .input(z.object({ moveId: z.number() }))
       .mutation(async ({ input, ctx }) => {
@@ -1550,7 +1552,7 @@ export const appRouter = router({
         if (!allowedRoles.includes(ctx.user.role)) {
           throw new Error('Zugriff verweigert');
         }
-        // استخدام نفس منطق generateInvoice
+        // Selbe Logik wie generateInvoice verwenden
         const db = await getDb();
         if (!db) throw new Error('DB not available');
         const moveResult = await db
