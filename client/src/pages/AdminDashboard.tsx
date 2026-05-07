@@ -27,11 +27,11 @@ import { formatCustomerNumber } from "@shared/customerNumber";
 // ── Status helpers ────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
-    confirmed:   { label: "مؤكد",          cls: "bg-[#eaf2f7] text-[#1a4d6d]" },
-    pending:     { label: "قيد الانتظار",  cls: "bg-[#fff2e8] text-[#bd682b]" },
-    in_progress: { label: "قيد التنفيذ",   cls: "bg-[#eaf2f7] text-[#1a4d6d]" },
-    completed:   { label: "مكتمل",         cls: "bg-gray-100 text-gray-800" },
-    cancelled:   { label: "ملغى",          cls: "bg-red-100 text-red-800" },
+    confirmed:   { label: "Bestätigt",          cls: "bg-[#eaf2f7] text-[#1a4d6d]" },
+    pending:     { label: "Ausstehend",  cls: "bg-[#fff2e8] text-[#bd682b]" },
+    in_progress: { label: "In Bearbeitung",   cls: "bg-[#eaf2f7] text-[#1a4d6d]" },
+    completed:   { label: "Abgeschlossen",         cls: "bg-gray-100 text-gray-800" },
+    cancelled:   { label: "Storniert",          cls: "bg-red-100 text-red-800" },
   };
   const cfg = map[status] ?? { label: status, cls: "bg-gray-100 text-gray-700" };
   return (
@@ -43,9 +43,9 @@ function StatusBadge({ status }: { status: string }) {
 
 function PayBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
-    paid:    { label: "مدفوع",       cls: "bg-green-100 text-green-700" },
-    unpaid:  { label: "غير مدفوع",   cls: "bg-red-100 text-red-800" },
-    partial: { label: "جزئي",        cls: "bg-[#fff2e8] text-[#bd682b]" },
+    paid:    { label: "Bezahlt",       cls: "bg-green-100 text-green-700" },
+    unpaid:  { label: "Unbezahlt",   cls: "bg-red-100 text-red-800" },
+    partial: { label: "Teilweise",        cls: "bg-[#fff2e8] text-[#bd682b]" },
   };
   const cfg = map[status] ?? { label: status, cls: "bg-gray-100 text-gray-700" };
   return (
@@ -106,11 +106,11 @@ function CustomerViewDialog({ customerId, onClose }: { customerId: number; onClo
   };
 
   const statusLabels: Record<string, string> = {
-    pending: "قيد الانتظار", confirmed: "مؤكد", in_progress: "قيد التنفيذ",
-    completed: "مكتمل", cancelled: "ملغى",
+    pending: "Ausstehend", confirmed: "Bestätigt", in_progress: "In Bearbeitung",
+    completed: "Abgeschlossen", cancelled: "Storniert",
   };
   const payLabels: Record<string, string> = {
-    unpaid: "غير مدفوع", partial: "جزئي", paid: "مدفوع بالكامل",
+    unpaid: "Unbezahlt", partial: "Teilweise", paid: "Vollständig bezahlt",
   };
 
   return (
@@ -118,37 +118,37 @@ function CustomerViewDialog({ customerId, onClose }: { customerId: number; onClo
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
           <DialogTitle className="text-lg">
-            بيانات العميل
+            Kundendaten
           </DialogTitle>
         </DialogHeader>
 
         {isLoading ? (
-          <div className="py-10 text-center text-gray-400">جاري تحميل بيانات العميل...</div>
+          <div className="py-10 text-center text-gray-400">Kundendaten werden geladen...</div>
         ) : !customer ? (
-          <div className="py-10 text-center text-red-400">لم يتم العثور على بيانات العميل</div>
+          <div className="py-10 text-center text-red-400">Kundendaten nicht gefunden</div>
         ) : (
           <div className="space-y-5">
-            {/* بيانات العميل الأساسية */}
+            {/* Grundlegende Kundendaten */}
             <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="font-semibold text-gray-800 mb-3 text-sm border-b pb-2">بيانات العميل</h3>
+              <h3 className="font-semibold text-gray-800 mb-3 text-sm border-b pb-2">Kundendaten</h3>
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div><span className="text-gray-500">الاسم الكامل:</span> <span className="font-medium">{customer.title} {customer.firstName} {customer.lastName}</span></div>
-                <div><span className="text-gray-500">البريد:</span> <span className="font-medium">{customer.email || "—"}</span></div>
-                <div><span className="text-gray-500">الهاتف:</span> <span className="font-medium">{customer.phone || "—"}</span></div>
-                <div><span className="text-gray-500">الشركة:</span> <span className="font-medium">{customer.company || "—"}</span></div>
+                <div><span className="text-gray-500">Vollständiger Name:</span> <span className="font-medium">{customer.title} {customer.firstName} {customer.lastName}</span></div>
+                <div><span className="text-gray-500">E-Mail:</span> <span className="font-medium">{customer.email || "—"}</span></div>
+                <div><span className="text-gray-500">Telefon:</span> <span className="font-medium">{customer.phone || "—"}</span></div>
+                <div><span className="text-gray-500">Firma:</span> <span className="font-medium">{customer.company || "—"}</span></div>
 
                 <div><span className="text-gray-500">Kundennummer:</span> <span className="font-medium">{customer.kundenummer || formatCustomerNumber(customer.id) || "—"}</span></div>
-                <div><span className="text-gray-500">تاريخ التسجيل:</span> <span className="font-medium">{new Date(customer.createdAt).toLocaleDateString("de-DE")}</span></div>
+                <div><span className="text-gray-500">Registrierungsdatum:</span> <span className="font-medium">{new Date(customer.createdAt).toLocaleDateString("de-DE")}</span></div>
                 {customer.notes && (
-                  <div className="col-span-2"><span className="text-gray-500">ملاحظات:</span> <span className="font-medium">{customer.notes}</span></div>
+                  <div className="col-span-2"><span className="text-gray-500">Notizen:</span> <span className="font-medium">{customer.notes}</span></div>
                 )}
               </div>
             </div>
 
-            {/* الطلبات */}
+            {/* Aufträge */}
             {(customer as any).moves?.length > 0 && (
               <div>
-                <h3 className="font-semibold text-gray-800 mb-3 text-sm">طلبات النقل ({(customer as any).moves.length})</h3>
+                <h3 className="font-semibold text-gray-800 mb-3 text-sm">Umzugsaufträge ({(customer as any).moves.length})</h3>
                 {(customer as any).moves.map((move: any) => {
                   let services: any[] = [];
                   try { services = move.services ? JSON.parse(move.services) : []; } catch {}
@@ -163,27 +163,27 @@ function CustomerViewDialog({ customerId, onClose }: { customerId: number; onClo
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm mb-3">
                         <div>
-                          <p className="text-gray-500 text-xs mb-1">عنوان الاستلام (Auszug)</p>
+                          <p className="text-gray-500 text-xs mb-1">Auszugsadresse</p>
                           <p className="font-medium">{move.pickupAddress}</p>
-                          {move.pickupFloor && <p className="text-gray-400 text-xs">طابق: {move.pickupFloor}</p>}
-                          {move.pickupElevatorCapacity && <p className="text-gray-400 text-xs">مصعد: {move.pickupElevatorCapacity}</p>}
-                          {move.pickupParkingDistance && <p className="text-gray-400 text-xs">مسافة: {move.pickupParkingDistance}</p>}
+                          {move.pickupFloor && <p className="text-gray-400 text-xs">Etage: {move.pickupFloor}</p>}
+                          {move.pickupElevatorCapacity && <p className="text-gray-400 text-xs">Aufzug: {move.pickupElevatorCapacity}</p>}
+                          {move.pickupParkingDistance && <p className="text-gray-400 text-xs">Entfernung: {move.pickupParkingDistance}</p>}
                         </div>
                         <div>
-                          <p className="text-gray-500 text-xs mb-1">عنوان التسليم (Einzug)</p>
+                          <p className="text-gray-500 text-xs mb-1">Einzugsadresse</p>
                           <p className="font-medium">{move.deliveryAddress}</p>
-                          {move.deliveryFloor && <p className="text-gray-400 text-xs">طابق: {move.deliveryFloor}</p>}
-                          {move.deliveryElevatorCapacity && <p className="text-gray-400 text-xs">مصعد: {move.deliveryElevatorCapacity}</p>}
-                          {move.deliveryParkingDistance && <p className="text-gray-400 text-xs">مسافة: {move.deliveryParkingDistance}</p>}
+                          {move.deliveryFloor && <p className="text-gray-400 text-xs">Etage: {move.deliveryFloor}</p>}
+                          {move.deliveryElevatorCapacity && <p className="text-gray-400 text-xs">Aufzug: {move.deliveryElevatorCapacity}</p>}
+                          {move.deliveryParkingDistance && <p className="text-gray-400 text-xs">Entfernung: {move.deliveryParkingDistance}</p>}
                         </div>
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-sm mb-3">
-                        <div><span className="text-gray-500">تاريخ الاستلام:</span> <span className="font-medium">{new Date(move.pickupDate).toLocaleDateString("de-DE")}</span></div>
-                        <div><span className="text-gray-500">الحجم:</span> <span className="font-medium">{move.volume ? `${move.volume} m³` : "—"}</span></div>
-                        <div><span className="text-gray-500">السعر:</span> <span className="font-medium">{move.grossPrice ? `${Number(move.grossPrice).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €` : "—"}</span></div>
-                        <div><span className="text-gray-500">المسافة:</span> <span className="font-medium">{move.distance ? `${move.distance} km` : "—"}</span></div>
-                        <div><span className="text-gray-500">عدد الرحلات:</span> <span className="font-medium">{move.numTrips ?? 0}</span></div>
-                        <div><span className="text-gray-500">نوع النقل:</span> <span className="font-medium">{move.moveType || "—"}</span></div>
+                        <div><span className="text-gray-500">Abholdatum:</span> <span className="font-medium">{new Date(move.pickupDate).toLocaleDateString("de-DE")}</span></div>
+                        <div><span className="text-gray-500">Volumen:</span> <span className="font-medium">{move.volume ? `${move.volume} m³` : "—"}</span></div>
+                        <div><span className="text-gray-500">Preis:</span> <span className="font-medium">{move.grossPrice ? `${Number(move.grossPrice).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €` : "—"}</span></div>
+                        <div><span className="text-gray-500">Entfernung:</span> <span className="font-medium">{move.distance ? `${move.distance} km` : "—"}</span></div>
+                        <div><span className="text-gray-500">Anzahl der Fahrten:</span> <span className="font-medium">{move.numTrips ?? 0}</span></div>
+                        <div><span className="text-gray-500">Umzugstyp:</span> <span className="font-medium">{move.moveType || "—"}</span></div>
                       </div>
                       <div className="mb-3 flex justify-end">
                         <Button
@@ -199,10 +199,10 @@ function CustomerViewDialog({ customerId, onClose }: { customerId: number; onClo
                         </Button>
                       </div>
 
-                      {/* الخدمات */}
+                      {/* Dienstleistungen */}
                       {services.length > 0 && (
                         <div className="mb-3">
-                          <p className="text-gray-500 text-xs mb-1">الخدمات الإضافية:</p>
+                          <p className="text-gray-500 text-xs mb-1">Zusätzliche Dienstleistungen:</p>
                           <div className="flex flex-wrap gap-1">
                             {services.map((s: any, i: number) => (
                               <span key={i} className="rounded bg-[#eaf2f7] px-2 py-0.5 text-xs text-[#1a4d6d]">
@@ -213,16 +213,16 @@ function CustomerViewDialog({ customerId, onClose }: { customerId: number; onClo
                         </div>
                       )}
 
-                      {/* الصور */}
+                      {/* Fotos */}
                       {move.images?.length > 0 && (
                         <div>
-                          <p className="text-gray-500 text-xs mb-2">الصور ({move.images.length}):</p>
+                          <p className="text-gray-500 text-xs mb-2">Fotos ({move.images.length}):</p>
                           <div className="flex flex-wrap gap-2">
                             {move.images.map((img: any) => (
                               <a key={img.id} href={img.imageUrl} target="_blank" rel="noopener noreferrer">
                                 <img
                                   src={img.imageUrl}
-                                  alt="صورة الطلب"
+                                  alt="Auftragsfoto"
                                   className="w-16 h-16 object-cover rounded border hover:opacity-80 transition-opacity"
                                 />
                               </a>
@@ -237,13 +237,13 @@ function CustomerViewDialog({ customerId, onClose }: { customerId: number; onClo
             )}
 
             {(customer as any).moves?.length === 0 && (
-              <div className="text-center py-4 text-gray-400 text-sm">لا توجد طلبات نقل لهذا العميل</div>
+              <div className="text-center py-4 text-gray-400 text-sm">Keine Umzugsaufträge für diesen Kunden</div>
             )}
           </div>
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>إغلاق</Button>
+          <Button variant="outline" onClick={onClose}>Schließen</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -259,7 +259,7 @@ export default function AdminDashboard() {
   const [deleteCustomer, setDeleteCustomer] = useState<any>(null);
   const [editCustomer, setEditCustomer] = useState<any>(null);
   const [viewCustomerId, setViewCustomerId] = useState<number | null>(null);
-  // حقول نموذج التعديل
+  // Felder des Bearbeitungs-Formulars
   const [editTitle, setEditTitle] = useState("");
   const [editFirstName, setEditFirstName] = useState("");
   const [editLastName, setEditLastName] = useState("");
@@ -352,11 +352,11 @@ export default function AdminDashboard() {
 
   const updateCustomerMutation = trpc.customers.update.useMutation({
     onSuccess: () => {
-      toast.success("تم تحديث بيانات العميل بنجاح");
+      toast.success("Kundendaten erfolgreich aktualisiert");
       setEditCustomer(null);
       customersQuery.refetch();
     },
-    onError: (err) => toast.error(err.message || "فشل تحديث البيانات"),
+    onError: (err) => toast.error(err.message || "Aktualisieren der Daten fehlgeschlagen"),
   });
 
   const handleSaveEdit = () => {
@@ -377,18 +377,18 @@ export default function AdminDashboard() {
 
   const deleteCustomerMutation = trpc.customers.delete.useMutation({
     onSuccess: () => {
-      toast.success("تم حذف العميل بنجاح");
+      toast.success("Kunde erfolgreich gelöscht");
       setDeleteCustomer(null);
       customersQuery.refetch();
       (movesQuery as any).refetch?.();
     },
-    onError: (err) => toast.error(err.message || "فشل حذف العميل"),
+    onError: (err) => toast.error(err.message || "Löschen des Kunden fehlgeschlagen"),
   });
 
   const handleRefresh = () => {
     customersQuery.refetch();
     (movesQuery as any).refetch?.();
-    toast.success("تم تحديث البيانات");
+    toast.success("Daten aktualisiert");
   };
 
   return (
@@ -400,9 +400,9 @@ export default function AdminDashboard() {
             onClick={() => navigate("/")}
             className="text-gray-500 hover:text-gray-700 flex items-center gap-1 text-sm"
           >
-            <ArrowLeft size={16} /> الرئيسية
+            <ArrowLeft size={16} /> Startseite
           </button>
-          <h1 className="text-lg font-bold text-gray-900">لوحة تحكم المدير</h1>
+          <h1 className="text-lg font-bold text-gray-900">Administrator-Dashboard</h1>
         </div>
         <div className="flex items-center gap-2">
           {user?.role === 'admin' && branches.length > 0 && (
@@ -412,10 +412,10 @@ export default function AdminDashboard() {
             >
               <SelectTrigger className="w-44 h-8 text-sm">
                 <Building2 size={14} className="mr-1 text-gray-400" />
-                <SelectValue placeholder="كل الفروع" />
+                <SelectValue placeholder="Alle Filialen" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">كل الفروع</SelectItem>
+                <SelectItem value="all">Alle Filialen</SelectItem>
                 {branches.map((b: any) => (
                   <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
                 ))}
@@ -428,7 +428,7 @@ export default function AdminDashboard() {
             onClick={handleRefresh}
             className="flex items-center gap-1"
           >
-            <RefreshCw size={14} /> تحديث
+            <RefreshCw size={14} /> Aktualisieren
           </Button>
           {!isReadOnly && (
             <Button
@@ -437,7 +437,7 @@ export default function AdminDashboard() {
               className="text-white flex items-center gap-1"
               style={{backgroundColor: '#1a4d6d'}}
             >
-              <Plus size={14} /> عميل جديد
+              <Plus size={14} /> Neuer Kunde
             </Button>
           )}
         </div>
@@ -447,30 +447,30 @@ export default function AdminDashboard() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <StatCard
-            title="إجمالي العملاء"
+            title="Kunden gesamt"
             value={totalCustomers}
-            sub={`${totalCustomers} عميل مسجل`}
+            sub={`${totalCustomers} registrierte Kunden`}
             icon={Users}
             color="bg-[#1a4d6d]"
           />
           <StatCard
-            title="الطلبات النشطة"
+            title="aktive Aufträge"
             value={activeMoves}
-            sub="قيد التنفيذ الآن"
+            sub="In Bearbeitung jetzt"
             icon={Package}
             color="bg-orange-500"
           />
           <StatCard
-            title="المدفوعات المعلقة"
+            title="Ausstehende Zahlungen"
             value={`${pendingAmount.toLocaleString()} €`}
-            sub={`من ${unpaidMoves.length} طلبات`}
+            sub={`${unpaidMoves.length} Aufträge`}
             icon={AlertTriangle}
             color="bg-red-500"
           />
           <StatCard
-            title="الإيرادات (مكتمل)"
+            title="Umsatz (Abgeschlossen)"
             value={`${monthlyRevenue.toLocaleString()} €`}
-            sub={`${completedMoves.length} طلب مكتمل`}
+            sub={`${completedMoves.length} abgeschlossene Aufträge`}
             icon={TrendingUp}
             color="bg-[#d97e3a]"
           />
@@ -479,10 +479,10 @@ export default function AdminDashboard() {
         {/* Quick actions */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           {([
-            { label: "عميل جديد",       icon: Plus,          path: "/new-customer",     color: "bg-[#1a4d6d] text-white hover:bg-[#14394f]", showFor: ["admin"] },
-            { label: "التقارير الإدارية",icon: BarChart2,     path: "/admin-reports",    color: "bg-indigo-600 text-white hover:bg-indigo-700", showFor: ["admin", "branch_manager"] },
-            { label: "إدارة الفروع",    icon: Users,         path: "/branches",         color: "bg-gray-700 text-white hover:bg-gray-800", showFor: ["admin"] },
-            { label: "إدارة المستخدمين", icon: UserCog,       path: "/users",            color: "bg-red-600 text-white hover:bg-red-700", showFor: ["admin"] },
+            { label: "Neuer Kunde",       icon: Plus,          path: "/new-customer",     color: "bg-[#1a4d6d] text-white hover:bg-[#14394f]", showFor: ["admin"] },
+            { label: "Verwaltungsberichte",icon: BarChart2,     path: "/admin-reports",    color: "bg-indigo-600 text-white hover:bg-indigo-700", showFor: ["admin", "branch_manager"] },
+            { label: "Filialverwaltung",    icon: Users,         path: "/branches",         color: "bg-gray-700 text-white hover:bg-gray-800", showFor: ["admin"] },
+            { label: "Benutzerverwaltung", icon: UserCog,       path: "/users",            color: "bg-red-600 text-white hover:bg-red-700", showFor: ["admin"] },
           ] as const)
             .filter(action => action.showFor.includes((user?.role ?? "") as any))
             .map(({ label, icon: Icon, path, color }) => (
@@ -501,15 +501,15 @@ export default function AdminDashboard() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="flex items-center justify-between mb-3">
             <TabsList>
-              <TabsTrigger value="customers">العملاء ({totalCustomers})</TabsTrigger>
-              <TabsTrigger value="moves">الطلبات ({moves.length})</TabsTrigger>
+              <TabsTrigger value="customers">Kunden ({totalCustomers})</TabsTrigger>
+              <TabsTrigger value="moves">Aufträge ({moves.length})</TabsTrigger>
               <TabsTrigger value="completed">
                 <CheckCircle2 size={13} className="mr-1" />
-                مكتملة ({completedMoves.length})
+                Abgeschlossen ({completedMoves.length})
               </TabsTrigger>
               <TabsTrigger value="reports">
                 <AlertOctagon size={13} className="mr-1" />
-                تقارير ({moves.filter((m: any) => m.schadenDescription || m.beschwerdeDescription).length})
+                Berichte ({moves.filter((m: any) => m.schadenDescription || m.beschwerdeDescription).length})
               </TabsTrigger>
             </TabsList>
 
@@ -517,7 +517,7 @@ export default function AdminDashboard() {
             <div className="relative w-64">
               <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
                 <Input
-                  placeholder="بحث بـ Kundennummer أو الاسم أو العنوان..."
+                  placeholder="Suche nach Kundennummer oder Name oder Adresse..."
 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -532,8 +532,8 @@ export default function AdminDashboard() {
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-base">إدارة العملاء</CardTitle>
-                    <CardDescription>قائمة بجميع العملاء المسجلين</CardDescription>
+                    <CardTitle className="text-base">Kundenverwaltung</CardTitle>
+                    <CardDescription>Liste aller registrierten Kunden</CardDescription>
                   </div>
                   {!isReadOnly && (
                     <Button
@@ -541,26 +541,26 @@ export default function AdminDashboard() {
                       onClick={() => navigate("/new-customer")}
                       className="bg-[#1a4d6d] text-white hover:bg-[#14394f]"
                     >
-                      <Plus size={14} className="mr-1" /> عميل جديد
+                      <Plus size={14} className="mr-1" /> Neuer Kunde
                     </Button>
                   )}
                 </div>
               </CardHeader>
               <CardContent>
                 {customersQuery.isLoading ? (
-                  <div className="text-center py-10 text-gray-400">جاري التحميل...</div>
+                  <div className="text-center py-10 text-gray-400">Wird geladen...</div>
                 ) : filteredCustomers.length === 0 ? (
                   <div className="text-center py-10">
                     <Users size={40} className="mx-auto text-gray-300 mb-3" />
                     <p className="text-gray-500 mb-4">
-                      {searchTerm ? "لا توجد نتائج للبحث" : "لا يوجد عملاء بعد"}
+                      {searchTerm ? "Keine Suchergebnisse" : "Noch keine Kunden"}
                     </p>
                     {!searchTerm && !isReadOnly && (
                       <Button
                         onClick={() => navigate("/new-customer")}
                         className="bg-[#1a4d6d] text-white hover:bg-[#14394f]"
                       >
-                        <Plus size={14} className="mr-1" /> أضف أول عميل
+                        <Plus size={14} className="mr-1" /> Ersten Kunden hinzufügen
                       </Button>
                     )}
                   </div>
@@ -570,12 +570,12 @@ export default function AdminDashboard() {
                       <thead className="bg-gray-50 border-b">
                         <tr>
                           <th className="px-4 py-2 text-right font-semibold text-gray-600">#</th>
-                          <th className="px-4 py-2 text-right font-semibold text-gray-600">الاسم</th>
-                          <th className="px-4 py-2 text-right font-semibold text-gray-600">البريد / الهاتف</th>
-                          <th className="px-4 py-2 text-right font-semibold text-gray-600">الشركة</th>
+                          <th className="px-4 py-2 text-right font-semibold text-gray-600">Name</th>
+                          <th className="px-4 py-2 text-right font-semibold text-gray-600">E-Mail / Telefon</th>
+                          <th className="px-4 py-2 text-right font-semibold text-gray-600">Firma</th>
 
-                          <th className="px-4 py-2 text-right font-semibold text-gray-600">تاريخ التسجيل</th>
-                          <th className="px-4 py-2 text-right font-semibold text-gray-600">إجراءات</th>
+                          <th className="px-4 py-2 text-right font-semibold text-gray-600">Registrierungsdatum</th>
+                          <th className="px-4 py-2 text-right font-semibold text-gray-600">Aktionen</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -605,7 +605,7 @@ export default function AdminDashboard() {
                                     size="sm"
                                     variant="outline"
                                     onClick={() => openEditDialog(customer)}
-                                    title="تعديل"
+                                    title="Bearbeiten"
                                   >
                                     <Edit2 size={13} />
                                   </Button>
@@ -614,7 +614,7 @@ export default function AdminDashboard() {
                                   size="sm"
                                   variant="outline"
                                   onClick={() => setViewCustomerId(customer.id)}
-                                  title="عرض"
+                                  title="Anzeigen"
                                 >
                                   <Eye size={13} />
                                 </Button>
@@ -624,7 +624,7 @@ export default function AdminDashboard() {
                                     variant="outline"
                                     className="text-red-600 hover:text-red-700 hover:border-red-300"
                                     onClick={() => setDeleteCustomer(customer)}
-                                    title="حذف العميل"
+                                    title="Löschen Kunde"
                                   >
                                     <Trash2 size={13} />
                                   </Button>
@@ -645,24 +645,24 @@ export default function AdminDashboard() {
           <TabsContent value="moves">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">إدارة الطلبات</CardTitle>
-                <CardDescription>قائمة بجميع طلبات النقل</CardDescription>
+                <CardTitle className="text-base">Auftragsverwaltung</CardTitle>
+                <CardDescription>Liste aller Umzugsaufträge</CardDescription>
               </CardHeader>
               <CardContent>
                 {(movesQuery as any).isLoading ? (
-                  <div className="text-center py-10 text-gray-400">جاري التحميل...</div>
+                  <div className="text-center py-10 text-gray-400">Wird geladen...</div>
                 ) : filteredMoves.length === 0 ? (
                   <div className="text-center py-10">
                     <Package size={40} className="mx-auto text-gray-300 mb-3" />
                     <p className="text-gray-500 mb-4">
-                      {searchTerm ? "لا توجد نتائج للبحث" : "لا توجد طلبات بعد"}
+                      {searchTerm ? "Keine Suchergebnisse" : "Noch keine Aufträge"}
                     </p>
                     {!searchTerm && !isReadOnly && (
                       <Button
                         onClick={() => navigate("/new-customer")}
                         className="bg-[#1a4d6d] text-white hover:bg-[#14394f]"
                       >
-                        <Plus size={14} className="mr-1" /> أضف طلب جديد
+                        <Plus size={14} className="mr-1" /> Neuen Auftrag hinzufügen
                       </Button>
                     )}
                   </div>
@@ -671,13 +671,13 @@ export default function AdminDashboard() {
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50 border-b">
                         <tr>
-                          <th className="px-4 py-2 text-right font-semibold text-gray-600">الكود</th>
-                          <th className="px-4 py-2 text-right font-semibold text-gray-600">من</th>
-                          <th className="px-4 py-2 text-right font-semibold text-gray-600">إلى</th>
-                          <th className="px-4 py-2 text-right font-semibold text-gray-600">التاريخ</th>
-                          <th className="px-4 py-2 text-right font-semibold text-gray-600">الحالة</th>
-                          <th className="px-4 py-2 text-right font-semibold text-gray-600">الدفع</th>
-                          <th className="px-4 py-2 text-right font-semibold text-gray-600">السعر</th>
+                          <th className="px-4 py-2 text-right font-semibold text-gray-600">Code</th>
+                          <th className="px-4 py-2 text-right font-semibold text-gray-600">Von</th>
+                          <th className="px-4 py-2 text-right font-semibold text-gray-600">Nach</th>
+                          <th className="px-4 py-2 text-right font-semibold text-gray-600">Datum</th>
+                          <th className="px-4 py-2 text-right font-semibold text-gray-600">Status</th>
+                          <th className="px-4 py-2 text-right font-semibold text-gray-600">Zahlung</th>
+                          <th className="px-4 py-2 text-right font-semibold text-gray-600">Preis</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -711,28 +711,28 @@ export default function AdminDashboard() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <CheckCircle2 size={18} className="text-[#d97e3a]" />
-                  المهام المكتملة
+                  Abgeschlossene Aufgaben
                 </CardTitle>
-                <CardDescription>جميع طلبات النقل التي أنجزها العمال</CardDescription>
+                <CardDescription>Alle abgeschlossenen Umzugsaufträge der Mitarbeiter</CardDescription>
               </CardHeader>
               <CardContent>
                 {completedMoves.length === 0 ? (
                   <div className="text-center py-10">
                     <CheckCircle2 size={40} className="mx-auto text-gray-300 mb-3" />
-                    <p className="text-gray-500">لا توجد مهام مكتملة بعد</p>
+                    <p className="text-gray-500">Noch keine abgeschlossenen Aufgaben</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50 border-b">
                         <tr>
-                          <th className="px-4 py-2 text-right font-semibold text-gray-600">الكود</th>
-                          <th className="px-4 py-2 text-right font-semibold text-gray-600">من</th>
-                          <th className="px-4 py-2 text-right font-semibold text-gray-600">إلى</th>
-                          <th className="px-4 py-2 text-right font-semibold text-gray-600">تاريخ النقل</th>
-                          <th className="px-4 py-2 text-right font-semibold text-gray-600">تاريخ الإنجاز</th>
-                          <th className="px-4 py-2 text-right font-semibold text-gray-600">الدفع</th>
-                          <th className="px-4 py-2 text-right font-semibold text-gray-600">السعر</th>
+                          <th className="px-4 py-2 text-right font-semibold text-gray-600">Code</th>
+                          <th className="px-4 py-2 text-right font-semibold text-gray-600">Von</th>
+                          <th className="px-4 py-2 text-right font-semibold text-gray-600">Nach</th>
+                          <th className="px-4 py-2 text-right font-semibold text-gray-600">Umzugsdatum</th>
+                          <th className="px-4 py-2 text-right font-semibold text-gray-600">Abschlussdatum</th>
+                          <th className="px-4 py-2 text-right font-semibold text-gray-600">Zahlung</th>
+                          <th className="px-4 py-2 text-right font-semibold text-gray-600">Preis</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -767,24 +767,24 @@ export default function AdminDashboard() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <AlertOctagon size={18} className="text-red-600" />
-                  تقارير التلف والشكاوى
+                  Schadens- Beschwerdeberichte
                 </CardTitle>
-                <CardDescription>جميع التقارير المسجلة من قبل العمال</CardDescription>
+                <CardDescription>Alle von Mitarbeitern erfassten Berichte</CardDescription>
               </CardHeader>
               <CardContent>
                 {moves.filter((m: any) => m.schadenDescription || m.beschwerdeDescription).length === 0 ? (
                   <div className="text-center py-10 space-y-4">
                     <AlertOctagon size={40} className="mx-auto text-gray-300 mb-3" />
                     <div>
-                      <p className="text-gray-700 font-medium">لا توجد تقارير حتى الآن</p>
-                      <p className="text-sm text-gray-500 mt-1">يمكن تسجيل التلف أو الشكوى من متابعة الطلبات أو من لوحة العامل، وستظهر هنا تلقائيًا بعد الحفظ.</p>
+                      <p className="text-gray-700 font-medium">Noch keine Berichte vorhanden</p>
+                      <p className="text-sm text-gray-500 mt-1">Schäden oder Beschwerden können über die Auftragsverfolgung oder das Mitarbeiter-Dashboard erfasst werden.</p>
                     </div>
                     <div className="flex items-center justify-center gap-3">
                       <Button variant="outline" onClick={() => navigate('/orders')} className="border-[#1a4d6d] text-[#1a4d6d] hover:bg-[#eaf2f7]">
-                        الذهاب إلى الطلبات
+                        Zu den Aufträgen
                       </Button>
                       <Button variant="outline" onClick={() => navigate('/worker')} className="border-[#d97e3a] text-[#8f4f1f] hover:bg-[#fff2e8]">
-                        فتح لوحة العامل
+                        Mitarbeiter-Dashboard öffnen
                       </Button>
                     </div>
                   </div>
@@ -806,7 +806,7 @@ export default function AdminDashboard() {
                           {move.schadenDescription && (
                             <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-2">
                               <p className="text-sm font-semibold text-red-700 flex items-center gap-2 mb-1">
-                                <AlertTriangle size={14} /> تقرير تلف (Schaden)
+                                <AlertTriangle size={14} /> Schadensbericht
                               </p>
                               <p className="text-sm text-red-600">{move.schadenDescription}</p>
                               {move.schadenImages && (() => {
@@ -828,7 +828,7 @@ export default function AdminDashboard() {
                           {move.beschwerdeDescription && (
                             <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
                               <p className="text-sm font-semibold text-orange-700 flex items-center gap-2 mb-1">
-                                <MessageSquareWarning size={14} /> شكوى (Beschwerde)
+                                <MessageSquareWarning size={14} /> Beschwerde
                               </p>
                               <p className="text-sm text-orange-600">{move.beschwerdeDescription}</p>
                             </div>
@@ -842,15 +842,15 @@ export default function AdminDashboard() {
           </TabsContent>
         </Tabs>
       </div>
-      {/* نافذة تعديل بيانات العميل */}
+      {/* Kundendaten bearbeiten */}
       <Dialog open={!!editCustomer} onOpenChange={(open) => !open && setEditCustomer(null)}>
         <DialogContent className="max-w-lg" dir="rtl">
           <DialogHeader>
-            <DialogTitle>تعديل بيانات العميل</DialogTitle>
+            <DialogTitle>Bearbeiten Kundendaten</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-3 py-2">
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">اللقب</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Anrede</label>
               <select
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
@@ -863,27 +863,27 @@ export default function AdminDashboard() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">الاسم الأول *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Vorname *</label>
               <input
                 type="text"
                 value={editFirstName}
                 onChange={(e) => setEditFirstName(e.target.value)}
                 className="w-full border rounded-md px-3 py-2 text-sm"
-                placeholder="الاسم الأول"
+                placeholder="Vorname"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">اسم العائلة *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nachname *</label>
               <input
                 type="text"
                 value={editLastName}
                 onChange={(e) => setEditLastName(e.target.value)}
                 className="w-full border rounded-md px-3 py-2 text-sm"
-                placeholder="اسم العائلة"
+                placeholder="Nachname"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">البريد الإلكتروني</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">E-Mail</label>
               <input
                 type="email"
                 value={editEmail}
@@ -893,7 +893,7 @@ export default function AdminDashboard() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">رقم الهاتف</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Telefonnummer</label>
               <input
                 type="tel"
                 value={editPhone}
@@ -903,41 +903,41 @@ export default function AdminDashboard() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">الشركة</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Firma</label>
               <input
                 type="text"
                 value={editCompany}
                 onChange={(e) => setEditCompany(e.target.value)}
                 className="w-full border rounded-md px-3 py-2 text-sm"
-                placeholder="اسم الشركة"
+                placeholder="Firmenname"
               />
             </div>
 
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">ملاحظات</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Notizen</label>
               <textarea
                 value={editNotes}
                 onChange={(e) => setEditNotes(e.target.value)}
                 className="w-full border rounded-md px-3 py-2 text-sm"
                 rows={3}
-                placeholder="ملاحظات إضافية..."
+                placeholder="Weitere Notizen..."
               />
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setEditCustomer(null)}>إلغاء</Button>
+            <Button variant="outline" onClick={() => setEditCustomer(null)}>Abbrechen</Button>
             <Button
               onClick={handleSaveEdit}
               disabled={updateCustomerMutation.isPending || !editFirstName || !editLastName}
               className="bg-[#1a4d6d] text-white hover:bg-[#14394f]"
             >
-              {updateCustomerMutation.isPending ? "جاري الحفظ..." : "حفظ التعديلات"}
+              {updateCustomerMutation.isPending ? "Wird gespeichert..." : "Änderungen speichern"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* نافذة عرض بيانات العميل الكاملة */}
+      {/* Vollständige Kundendaten anzeigen */}
       {viewCustomerId && (
         <CustomerViewDialog
           customerId={viewCustomerId}
@@ -945,22 +945,22 @@ export default function AdminDashboard() {
         />
       )}
 
-      {/* نافذة تأكيد حذف العميل */}
+      {/* Kundenlöschung bestätigen */}
       <AlertDialog open={!!deleteCustomer} onOpenChange={() => setDeleteCustomer(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>تأكيد حذف العميل</AlertDialogTitle>
+            <AlertDialogTitle>Bestätigen Löschen Kunde</AlertDialogTitle>
             <AlertDialogDescription>
-              هل أنت متأكد من حذف العميل{" "}
-              <strong>{deleteCustomer?.title} {deleteCustomer?.firstName} {deleteCustomer?.lastName}</strong>؟
+              Möchten Sie den Kunden{" "}
+              <strong>{deleteCustomer?.title} {deleteCustomer?.firstName} {deleteCustomer?.lastName}</strong>?
               <br />
               <span className="text-red-600 font-medium">
-                سيتم حذف جميع طلباته وبياناته بشكل نهائي ولا يمكن التراجع عن هذا الإجراء.
+                Dadurch werden alle Aufträge Daten unwiderruflich gelöscht.
               </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700 text-white"
               onClick={() => {
@@ -969,7 +969,7 @@ export default function AdminDashboard() {
                 }
               }}
             >
-              {deleteCustomerMutation.isPending ? "جاري الحذف..." : "حذف العميل نهائياً"}
+              {deleteCustomerMutation.isPending ? "Wird gelöscht..." : "Kunden endgültig löschen"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
