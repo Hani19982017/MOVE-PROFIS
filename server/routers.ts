@@ -676,7 +676,7 @@ export const appRouter = router({
           if (input.extraPreis !== undefined) moveUpdate.extraPreis = input.extraPreis;
           if (input.extraBemerkungen !== undefined) moveUpdate.extraBemerkungen = input.extraBemerkungen;
           // Audits
-          if (input.bezahltvon !== undefined) moveUpdate.bezahltvon = input.bezahltvon;
+          if (input.bezahltvon !== undefined) moveUpdate.bezahltVon = input.bezahltvon;
           if (input.betzhalKunde !== undefined) moveUpdate.betzhalKunde = input.betzhalKunde;
           if (input.istBezahlt !== undefined) {
             moveUpdate.istBezahlt = input.istBezahlt ? 1 : 0;
@@ -953,7 +953,7 @@ export const appRouter = router({
             bankBetrag: moves.bankBetrag,
             barBetrag: moves.barBetrag,
             rechnungNummer: moves.rechnungNummer,
-            bezahltvon: moves.bezahltvon,
+            bezahltvon: moves.bezahltVon,
             betzhalKunde: moves.betzhalKunde,
             bezahltDatum: moves.bezahltDatum,
             rechnungBetrag: moves.rechnungBetrag,
