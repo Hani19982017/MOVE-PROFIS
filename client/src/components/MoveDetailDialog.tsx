@@ -243,7 +243,7 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
     setGeneratingPdf(true);
     setInvoiceSaveMode(true);
     try {
-      // حفظ البيانات أولاً لضمان أن الفاتورة تعكس التغييرات الحالية
+      // Daten zuerst speichern, damit die Rechnung die aktuellen Änderungen widerspiegelt
       const servicesJson = JSON.stringify({
         einpackservice, einpackKartons, abbauMoebeln, abbauMoebelnM3, abbauKueche, abbauKuecheM3, parkzoneAuszug,
         auspackservice, auspackKartons, aufbauMoebeln, aufbauMoebelnM3, aufbauKueche, aufbauKuecheM3, parkzoneEinzug,
@@ -262,7 +262,7 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
         grossPrice: priceBrutto ? parseFloat(priceBrutto) : undefined,
         volume: m3 ? parseFloat(m3) : undefined, distance: distanz ? parseFloat(distanz) : undefined,
         anfahrt: anfahrt ? parseInt(anfahrt) : 0,
-        pickupDate: terminVon, deliveryDate: terminBis,
+        pickupDate: terminvon, deliveryDate: terminBis,
         pickupAddress: auszugsort, pickupFloor: auszugEtage,
         pickupElevatorCapacity: auszugFahrstuhl, pickupParkingDistance: auszugLaufweg,
         deliveryAddress: einzugsort, deliveryFloor: einzugEtage,
@@ -285,7 +285,7 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
         extraVolumen: extraVolumen ? parseInt(extraVolumen) : undefined,
         extraPreis: extraPreis ? parseInt(extraPreis) : undefined, extraBemerkungen,
         // Audits
-        bezahltVon: auditBezahltVon,
+        bezahltvon: auditBezahltvon,
         betzhalKunde: auditBetzhalKunde,
         istBezahlt: auditIstBezahlt,
         paymentWay: auditPaymentWay,
@@ -299,9 +299,9 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
         images: photos.map(p => ({ name: p.name, data: p.base64 })),
       });
 
-      // الآن توليد الفاتورة
+      // Jetzt die Rechnung erzeugen
       const result = await generateInvoice.mutateAsync({ moveId });
-      // تحويل base64 إلى blob وتحميله
+      // base64 in blob umwandeln und herunterladen
       const byteCharacters = atob(result.base64);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
@@ -349,7 +349,7 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
   const [versuch, setVersuch] = useState("Versuch 1");
   const [moveType, setMoveType] = useState("Umzug");
   const [mitFotos, setMitFotos] = useState(true);
-  const [terminVon, setTerminVon] = useState("");
+  const [terminvon, setTerminvon] = useState("");
   const [terminBis, setTerminBis] = useState("");
   // reminderDate: stored in customerReminders. Null/empty means no scheduled reminder.
   const [reminderDate, setReminderDate] = useState("");
@@ -446,7 +446,7 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
   const [extraPreis, setExtraPreis] = useState("");
   const [extraBemerkungen, setExtraBemerkungen] = useState("");
   // Audits
-  const [auditBezahltVon, setAuditBezahltVon] = useState("Kunde");
+  const [auditBezahltvon, setAuditBezahltvon] = useState("Kunde");
   const [auditBetzhalKunde, setAuditBetzhalKunde] = useState("");
   const [auditIstBezahlt, setAuditIstBezahlt] = useState(false);
   const [auditPaymentWay, setAuditPaymentWay] = useState("Bank");
@@ -485,7 +485,7 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
         || branchOptions[0]
         || "";
       setSitz(branchDisplayName);
-      setStatus2(customer.status2 || "Registriert auf Apex");
+      setStatus2(customer.status2 || "Angaben vollständig");
       setVersuch(customer.versuch || "Versuch 1"); setCallCheck(customer.callCheck || "Nein");
       setShaden(customer.shaden || "Nein"); setAngebotPerPost(!!customer.angebotPerPost);
       setBezahlt(!!customer.bezahlt); setMitFotos(customer.mitFotos !== 0);
@@ -509,7 +509,7 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
       if (move.pickupDate) {
         const d = new Date(move.pickupDate);
         if (!isNaN(d.getTime()) && d.getFullYear() > 1970) {
-          setTerminVon(d.toISOString().split("T")[0]);
+          setTerminvon(d.toISOString().split("T")[0]);
         }
       }
       if (move.deliveryDate) {
@@ -569,7 +569,7 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
       setExtraPreis(move.extraPreis ? String(move.extraPreis) : "");
       setExtraBemerkungen(move.extraBemerkungen || "");
       // Audits
-      setAuditBezahltVon(move.bezahltVon || "Kunde");
+      setAuditBezahltvon(move.bezahltvon || "Kunde");
       setAuditBetzhalKunde(move.betzhalKunde || "");
       setAuditIstBezahlt(!!move.istBezahlt);
       setAuditPaymentWay(move.paymentWay || "Bank");
@@ -598,7 +598,7 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
   const buildMessage = (type: string) => {
     const n = name || "[Name]";
     const code = umzugscode || "[Kundennummer]";
-    const date = terminVon || "[Datum]";
+    const date = terminvon || "[Datum]";
     const price = priceBrutto || "[Preis]";
     const vol = m3 || "[m³]";
     const from = auszugsort || "[Auszugsort]";
@@ -621,7 +621,7 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
       nachverfolgen3: `Hallo ${anrede} ${n},\nda ich bislang noch keine Rückmeldung von Ihnen erhalten habe, möchte ich freundlich nachfragen, ob weiterhin Interesse an unserem Angebot mit der Kundennummer ${code} besteht.\nWir stehen bereit, Ihren Umzug zuverlässig und professionell umzusetzen.\n\nMit freundlichen Grüßen,\n\n\nUmzugsberater\n\n📞 WhatsApp: 015560030641\n✉️ E-Mail: info@frankfurtcheckumzug.de\n🌍 Web: www.checkumzug.de\n📠 Fax: 02343 6714070`,
       nachverfolgen4: `Hallo ${anrede} ${n},\ndies ist meine abschließende Nachfrage zu unserem Angebot mit der Kundennummer ${code}.\nSollten Sie sich bereits entschieden haben, wäre ich Ihnen für eine kurze Rückmeldung sehr dankbar.\nNatürlich stehe ich Ihnen weiterhin jederzeit gerne zur Verfügung, falls Sie unser Angebot doch noch in Anspruch nehmen möchten.\n\nMit freundlichen Grüßen,\n\n\nUmzugsberater\n\n📞 WhatsApp: 015560030641\n✉️ E-Mail: info@frankfurtcheckumzug.de\n🌍 Web: www.checkumzug.de\n📠 Fax: 02343 6714070`,
 
-      rechnungDaten: `Ange Number\t${code}\nTermin\t${date}\nPrice\t${price}\nServices List\tUmzug Volumen von (${vol} m³) Von: ${from} Nach: ${to} • Umzugsversicherung • Ab/Anfahrt • Be- und Entladung • Bereitstellung von Luftpolsterfolie und Umzugsfolienrollen • Einrichtung eine Parkzone am Auszugsort • Aufbau von Möbeln • Einrichtung einer Parkzone am Einzugsort • Bereitstellung von Umzugskartons (x40)`,
+      rechnungDaten: `Ange Number\t${code}\nTermin\t${date}\nPrice\t${price}\nServices List\tUmzug Volumen von (${vol} m³) von: ${from} Nach: ${to} • Umzugsversicherung • Ab/Anfahrt • Be- und Entladung • Bereitstellung von Luftpolsterfolie und Umzugsfolienrollen • Einrichtung eine Parkzone am Auszugsort • Aufbau von Möbeln • Einrichtung einer Parkzone am Einzugsort • Bereitstellung von Umzugskartons (x40)`,
 
       angepassteAngebot: `Hallo ${anrede} ${n},\n\nanbei erhalten Sie das angepasste Angebot mit der Kundennummer ${code} für Ihren Umzug im PDF-Format.\n\nWir haben die Änderungen gemäß Ihrer Rückmeldung berücksichtigt, um das Angebot optimal auf Ihre Wünsche und Anforderungen abzustimmen.\n\nBitte prüfen Sie das Dokument in Ruhe. Falls noch Fragen bestehen oder weitere Anpassungen gewünscht sind, stehe ich Ihnen selbstverständlich jederzeit gerne zur Verfügung.\n\nFür Rückfragen geben Sie bitte wie gewohnt die Kundennummer ${code} an, damit wir schnell auf Ihr Anliegen reagieren können.\n\nWir freuen uns darauf, Sie bei Ihrem Umzug bestmöglich zu unterstützen.\n\nMit freundlichen Grüßen,\n\n\nUmzugsberater\n\n📞 WhatsApp: 015560030641\n✉️ E-Mail: info@frankfurtcheckumzug.de\n🌍 Web: www.checkumzug.de\n📠 Fax: 02343 6714070`,
     };
@@ -661,7 +661,7 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
       grossPrice: priceBrutto ? parseFloat(priceBrutto) : undefined,
       volume: m3 ? parseFloat(m3) : undefined, distance: distanz ? parseFloat(distanz) : undefined,
       anfahrt: anfahrt ? parseInt(anfahrt) : 0,
-      pickupDate: terminVon, deliveryDate: terminBis,
+      pickupDate: terminvon, deliveryDate: terminBis,
       // null clears the reminder, empty/undefined leaves it untouched
       reminderDate: reminderDate ? reminderDate : null,
       pickupAddress: auszugsort, pickupFloor: auszugEtage,
@@ -686,7 +686,7 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
       extraVolumen: extraVolumen ? parseInt(extraVolumen) : undefined,
       extraPreis: extraPreis ? parseInt(extraPreis) : undefined, extraBemerkungen,
       // Audits
-      bezahltVon: auditBezahltVon,
+      bezahltvon: auditBezahltvon,
       betzhalKunde: auditBetzhalKunde,
       istBezahlt: auditIstBezahlt,
       paymentWay: auditPaymentWay,
@@ -785,13 +785,13 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
               <Field label="Name">{inp(name, setName, { placeholder: "Vor- und Nachname" })}</Field>
 
-              <Field label="Umzug Termin Von">{inp(terminVon, setTerminVon, { type: "date", placeholder: "Von Datum" })}</Field>
+              <Field label="Umzug Termin von">{inp(terminvon, setTerminvon, { type: "date", placeholder: "von Datum" })}</Field>
               <Field label="Phone">{inp(phone, setPhone, { placeholder: "0175 0000000" })}</Field>
               <Field label="Filiale">{sel(sitz, setSitz, branchOptions)}</Field>
               <Field label="Umzug Termin Bis">{inp(terminBis, setTerminBis, { type: "date", placeholder: "Bis Datum" })}</Field>
               <Field label="Email">{inp(email, setEmail, { type: "email", placeholder: "email@example.com" })}</Field>
-              <Field label="موعد التذكير / Erinnerungsdatum">{inp(reminderDate, setReminderDate, { type: "date", placeholder: "Optional" })}</Field>
-              <Field label="Status">{sel(status2, setStatus2, ["Angaben vollständig","Nachverfolgen","Online-besichtigungstermin","Besichtigungtermin","Absagen"])}</Field>
+              <Field label="Erinnerungsdatum">{inp(reminderDate, setReminderDate, { type: "date", placeholder: "Optional" })}</Field>
+              <Field label="Status">{sel(status2, setStatus2, ["Registriert auf Apex","Angebot gesendet","Bestaetigt","Abgesagt","Abgeschlossen"])}</Field>
               <Field label="Kundennummer">{inp(umzugscode, setUmzugscode, { placeholder: "00001", readOnly: true })}</Field>
               <Field label="Price Brutto (EUR)">{inp(priceBrutto, setPriceBrutto, { type: "number", placeholder: "0" })}</Field>
               <Field label="Versuch">{sel(versuch, setVersuch, ["Versuch 1","Versuch 2","Versuch 3","Versuch 4","Versuch 5","Versuch 6"])}</Field>
@@ -844,11 +844,18 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
               <Field label="m3">{inp(m3, setM3, { type: "number", placeholder: "0" })}</Field>
               <Field label="Type">{sel(moveType, setMoveType, ["Umzug","Einlagerung","Transport","Entsorgung"])}</Field>
               <Field label="Auftragsstatus">
-                {ro ? <div className="w-full border rounded px-3 py-2 text-sm bg-gray-50">{moveStatus}</div>
+                {ro ? <div className="w-full border rounded px-3 py-2 text-sm bg-gray-50">
+                        {moveStatus === "pending" ? "Ausstehend"
+                          : moveStatus === "confirmed" ? "Registriert Auf Apex"
+                          : moveStatus === "in_progress" ? "Abgeschlossen"
+                          : moveStatus === "completed" ? "Besichtigungtermin"
+                          : moveStatus === "cancelled" ? "Storniert"
+                          : moveStatus}
+                      </div>
                     : <select className="w-full border rounded px-3 py-2 text-sm" value={moveStatus} onChange={e => setMoveStatus(e.target.value)}>
-                        <option value="pending">Ausstehend</option><option value="confirmed">Registriert Auf Apex</option>
-                        <option value="in_progress">Abgeschlossen</option>
-                        <option value="cancelled">Storniert</option>
+                        <option value="pending">Angaben vollständig</option><option value="confirmed">Nachverfolgen</option>
+                        <option value="in_progress">Online-besichtigungtermin</option><option value="completed">Besichtigungtermin</option>
+                        <option value="cancelled">Absagen</option>
                       </select>}
               </Field>
             </div>
@@ -1143,8 +1150,8 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Field label="Betzhlt von">
-                  {ro ? <div className="w-full border rounded px-3 py-2 text-sm bg-gray-50">{auditBezahltVon}</div>
-                      : <select className="w-full border rounded px-3 py-2 text-sm" value={auditBezahltVon} onChange={e => setAuditBezahltVon(e.target.value)}>
+                  {ro ? <div className="w-full border rounded px-3 py-2 text-sm bg-gray-50">{auditBezahltvon}</div>
+                      : <select className="w-full border rounded px-3 py-2 text-sm" value={auditBezahltvon} onChange={e => setAuditBezahltvon(e.target.value)}>
                           <option>Kunde</option><option>Firma</option>
                         </select>}
                 </Field>
