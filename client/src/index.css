@@ -305,3 +305,9 @@ td, th
 .group:hover .transition-transform {
   transform: scale(1.1) rotate(5deg);
 }
+
+.pr-10
+{
+  padding-left : 37px !important;
+}
+ 
