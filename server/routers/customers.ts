@@ -403,7 +403,9 @@ export const customersRouter = router({
                 imageUrl: "",
                 imageKey: image.name || `photo-${Date.now()}`,
                 imageType: "customer_photos",
-                uploadedBy: ctx.user.id,
+                // uploadedBy is NOT NULL with no default in the DB — always
+                // provide a numeric value so the insert never fails.
+                uploadedBy: ctx.user?.id ?? 0,
               } as any).$returningId?.() ?? null;
 
               // Resolve the new row's id and stamp the public URL.
