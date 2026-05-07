@@ -326,7 +326,7 @@ export const customersRouter = router({
             services: input.services,
             servicesJson: input.servicesJson,
             paymentStatus: input.istBezahlt ? "paid" : "unpaid",
-            bezahltvon: input.bezahltvon,
+            bezahltVon: input.bezahltvon,
             betzhalKunde: input.betzhalKunde,
             istBezahlt: input.istBezahlt ? 1 : 0,
             paymentWay: input.paymentWay,
