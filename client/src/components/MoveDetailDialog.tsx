@@ -525,26 +525,33 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
       if (move.servicesJson) {
         try {
           const sj = JSON.parse(move.servicesJson);
-          setEinpackservice(!!sj.einpackservice); setEinpackKartons(sj.einpackKartons || "0");
-          setAbbauMoebeln(!!sj.abbauMoebeln); setAbbauMoebelnM3(sj.abbauMoebelnM3 || "0");
-          setAbbauKueche(!!sj.abbauKueche); setAbbauKuecheM3(sj.abbauKuecheM3 || "0");
-          setParkzoneAuszug(sj.parkzoneAuszug !== false);
-          setAuspackservice(!!sj.auspackservice); setAuspackKartons(sj.auspackKartons || "0");
-          setAufbauMoebeln(!!sj.aufbauMoebeln); setAufbauMoebelnM3(sj.aufbauMoebelnM3 || "0");
-          setAufbauKueche(!!sj.aufbauKueche); setAufbauKuecheM3(sj.aufbauKuecheM3 || "0");
-          setParkzoneEinzug(sj.parkzoneEinzug !== false);
+          setEinpackservice(!!(sj.einpackservice ?? sj.auszugsortEmpfangsservice));
+          setEinpackKartons(sj.einpackKartons || sj.auszugsortEmpfangsserviceKartons || sj.auszugsortKartons || "0");
+          setAbbauMoebeln(!!(sj.abbauMoebeln ?? sj.auszugsortAbbauMoebel));
+          setAbbauMoebelnM3(sj.abbauMoebelnM3 || sj.auszugsortAbbauMoebelM3 || "0");
+          setAbbauKueche(!!(sj.abbauKueche ?? sj.auszugsortAbbauKueche));
+          setAbbauKuecheM3(sj.abbauKuecheM3 || sj.auszugsortAbbauKuecheM3 || "0");
+          setParkzoneAuszug(!!(sj.parkzoneAuszug ?? sj.auszugsortParkzone));
+          setAuspackservice(!!(sj.auspackservice ?? sj.einzugsortAuspacksservice));
+          setAuspackKartons(sj.auspackKartons || sj.einzugsortAuspacksserviceKartons || sj.einzugsortKartons || "0");
+          setAufbauMoebeln(!!(sj.aufbauMoebeln ?? sj.einzugsortAufbauMoebel));
+          setAufbauMoebelnM3(sj.aufbauMoebelnM3 || sj.einzugsortAufbauMoebelM3 || "0");
+          setAufbauKueche(!!(sj.aufbauKueche ?? sj.einzugsortAufbauKueche));
+          setAufbauKuecheM3(sj.aufbauKuecheM3 || sj.einzugsortAufbauKuecheM3 || "0");
+          setParkzoneEinzug(!!(sj.parkzoneEinzug ?? sj.einzugsortParkzone));
           setUmzugskartons(sj.umzugskartons || "0"); setKleiderkartons(sj.kleiderkartons || "0");
-          setKartonDelivery(sj.kartonDelivery || ""); setKartonGeliefert(sj.kartonGeliefert || "");
-          setParkzoneDatum(sj.parkzoneDatum || ""); setParkzoneGeliefert(sj.parkzoneGeliefert || "");
+          setKartonDelivery(sj.kartonDelivery || sj.deliveryDate || ""); setKartonGeliefert(sj.kartonGeliefert || "");
+          setParkzoneDatum(sj.parkzoneDatum || sj.datumParkzone || ""); setParkzoneGeliefert(sj.parkzoneGeliefert || "");
           setKlaviertransport(!!sj.klaviertransport); setKlavierGross(sj.klavierGross || "Nein");
           setSchwerTransport(sj.schwerTransport || "Kein");
           setLampen(!!sj.lampen); setLampenOrt(sj.lampenOrt || "Kein"); setLampenStueck(sj.lampenStueck || "0");
-          setEinlagerung(!!sj.einlagerung); setEinlagerungPrice(sj.einlagerungPrice || "0");
-          setEndreinigung(!!sj.endreinigung); setBohrarbeit(!!sj.bohrarbeit); setBohrarbeitPunkt(sj.bohrarbeitPunkt || "0");
-          setEntsorgung(!!sj.entsorgung); setEntsorgungType(sj.entsorgungType || "Normal"); setEntsorgungM3(sj.entsorgungM3 || "0");
-          setAussenlift(sj.aussenlift || "Nein"); setAussenliftStunde(sj.aussenliftStunde || "0");
+          setEinlagerung(!!(sj.einlagerung ?? sj.einlagerungMoebel)); setEinlagerungPrice(sj.einlagerungPrice || "0");
+          setEndreinigung(!!sj.endreinigung);
+          setBohrarbeit(!!(sj.bohrarbeit ?? sj.bohrDuebel)); setBohrarbeitPunkt(sj.bohrarbeitPunkt || sj.bohrPunkt || "0");
+          setEntsorgung(!!(sj.entsorgung ?? sj.entsorgungMoebel)); setEntsorgungType(sj.entsorgungType || "Normal"); setEntsorgungM3(sj.entsorgungM3 || "0");
+          setAussenlift(sj.aussenlift || sj.ausmist || "Nein"); setAussenliftStunde(sj.aussenliftStunde || sj.ausmistStunde || "0");
           setAnschlussWaschmaschine(!!sj.anschlussWaschmaschine);
-          setSonstigeLeistung(sj.sonstigeLeistung || ""); setSonstigePrice(sj.sonstigePrice || "");
+          setSonstigeLeistung(sj.sonstigeLeistung || ""); setSonstigePrice(sj.sonstigePrice || sj.sonstigeLeistungPrice || "");
         } catch {}
       }
       setSummary(move.summary || ""); setAnmerkungen(move.anmerkungen || "");
