@@ -10,8 +10,8 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { KUNDENNUMMER_PLACEHOLDER, formatCustomerNumber } from "@shared/customerNumber";
 
 // ─── Image Compression Utility ────────────────────────────────────────────────
-// يضغط الصورة باستخدام Canvas API قبل الرفع
-// الجودة: 0.75 (75%) - جودة مقبولة مع تقليل كبير في الحجم
+// Komprimiert das Foto mit Canvas API vor dem Hochladen
+// Qualität: 0.75 (75%) - akzeptable Qualität bei deutlich reduzierter Dateigröße
 async function compressImage(
   file: File,
   maxWidth = 1200,
@@ -23,7 +23,7 @@ async function compressImage(
     reader.onload = (e) => {
       const img = new Image();
       img.onload = () => {
-        // حساب الأبعاد الجديدة مع الحفاظ على النسبة
+        // Neue Maße berechnen unter Beibehaltung des Seitenverhältnisses
         let { width, height } = img;
         if (width > maxWidth || height > maxHeight) {
           const ratio = Math.min(maxWidth / width, maxHeight / height);
@@ -150,7 +150,7 @@ function MessageItem({
   const [editing, setEditing] = useState(false);
   const [editedText, setEditedText] = useState(message);
 
-  // تحديث النص عند تغيير البيانات من الفورم
+  // Text aktualisieren, wenn Formulardaten sich ändern
   useEffect(() => {
     if (!editing) setEditedText(message);
   }, [message, editing]);
@@ -269,17 +269,17 @@ export default function NewCustomer() {
   const [loadingBranches, setLoadingBranches] = useState(true);
   const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null);
 
-  // تحميل الفروع النشطة من قاعدة البيانات
+  // aktive Filialen aus der Datenbank laden
   const { data: branchesData } = trpc.branches.list.useQuery();
   
   useEffect(() => {
     if (branchesData) {
-      // تصفية الفروع النشطة فقط
+      // Filter Filialen الaktiv nur
       const activeBranches = branchesData.filter((b: any) => b.isActive === 1);
       setBranches(activeBranches);
       setLoadingBranches(false);
       
-      // إذا كان المستخدم مدير فرع، قم بتعيين فرعه تلقائياً
+      // wenn كان Benutzer Filialleiter, قم بتعيين seine Filiale تلقائياً
       if (user?.role === 'branch_manager' && user?.branchId) {
         const userBranch = activeBranches.find((b: any) => b.id === user.branchId);
         if (userBranch) {
@@ -304,11 +304,11 @@ export default function NewCustomer() {
   const [email, setEmail] = useState("");
 
   const [sitz, setSitz] = useState("");
-  const [status, setStatus] = useState("Registriert auf Apex");
+  const [status, setStatus] = useState("Angaben vollständig");
   const [versuch, setVersuch] = useState("Versuch 1");
   const [moveType, setMoveType] = useState("Umzug");
   const [mitFotos, setMitFotos] = useState(true);
-  const [terminVon, setTerminVon] = useState("");
+  const [terminvon, setTerminvon] = useState("");
   const [terminBis, setTerminBis] = useState("");
   // reminderDate: when sales should be reminded to follow up. Sales picks
   // any future date here; the customer appears in the Reminders section
@@ -349,7 +349,7 @@ export default function NewCustomer() {
   const [abbauMoebelnM3, setAbbauMoebelnM3] = useState("0");
   const [abbauKueche, setAbbauKueche] = useState(false);
   const [abbauKuecheM3, setAbbauKuecheM3] = useState("0");
-const [parkzoneAuszug, setParkzoneAuszug] = useState(false);
+  const [parkzoneAuszug, setParkzoneAuszug] = useState(false);
   // Services Einzug
   const [auspackservice, setAuspackservice] = useState(false);
   const [auspackKartons, setAuspackKartons] = useState("0");
@@ -357,7 +357,7 @@ const [parkzoneAuszug, setParkzoneAuszug] = useState(false);
   const [aufbauMoebelnM3, setAufbauMoebelnM3] = useState("0");
   const [aufbauKueche, setAufbauKueche] = useState(false);
   const [aufbauKuecheM3, setAufbauKuecheM3] = useState("0");
- const [parkzoneEinzug, setParkzoneEinzug] = useState(false);
+  const [parkzoneEinzug, setParkzoneEinzug] = useState(false);
   // Kartons
   const [umzugskartons, setUmzugskartons] = useState("0");
   const [kleiderkartons, setKleiderkartons] = useState("0");
@@ -401,7 +401,7 @@ const [parkzoneAuszug, setParkzoneAuszug] = useState(false);
   const [rechnungNr, setRechnungNr] = useState("");
 
   // ── Audits ──
-  const [bezahltVon, setBezahltVon] = useState("Kunde");
+  const [bezahltvon, setBezahltvon] = useState("Kunde");
   const [betzhalKunde, setBetzhalKunde] = useState("");
   const [istBezahlt, setIstBezahlt] = useState(false);
   const [paymentWay, setPaymentWay] = useState("Bank");
@@ -462,7 +462,7 @@ const [parkzoneAuszug, setParkzoneAuszug] = useState(false);
   const buildMessage = (type: string) => {
     const n = name || "[Name]";
     const code = kundenummer || KUNDENNUMMER_PLACEHOLDER;
-    const date = terminVon || "[Datum]";
+    const date = terminvon || "[Datum]";
     const price = priceBrutto || "[Preis]";
     const vol = m3 || "[m³]";
     const from = auszugsort || "[Auszugsort]";
@@ -485,7 +485,7 @@ const [parkzoneAuszug, setParkzoneAuszug] = useState(false);
       nachverfolgen3: `Hallo ${anrede} ${n},\nda ich bislang noch keine Rückmeldung von Ihnen erhalten habe, möchte ich freundlich nachfragen, ob weiterhin Interesse an unserem Angebot mit der Kundennummer ${code} besteht.\nWir stehen bereit, Ihren Umzug zuverlässig und professionell umzusetzen.\n\nMit freundlichen Grüßen,\n\n\nUmzugsberater\n\n📞 WhatsApp: 015560030641\n✉️ E-Mail: info@frankfurtcheckumzug.de\n🌍 Web: www.checkumzug.de\n📠 Fax: 02343 6714070`,
       nachverfolgen4: `Hallo ${anrede} ${n},\ndies ist meine abschließende Nachfrage zu unserem Angebot mit der Kundennummer ${code}.\nSollten Sie sich bereits entschieden haben, wäre ich Ihnen für eine kurze Rückmeldung sehr dankbar.\nNatürlich stehe ich Ihnen weiterhin jederzeit gerne zur Verfügung, falls Sie unser Angebot doch noch in Anspruch nehmen möchten.\n\nMit freundlichen Grüßen,\n\n\nUmzugsberater\n\n📞 WhatsApp: 015560030641\n✉️ E-Mail: info@frankfurtcheckumzug.de\n🌍 Web: www.checkumzug.de\n📠 Fax: 02343 6714070`,
 
-      rechnungDaten: `Ange Number\t${code}\nTermin\t${date}\nPrice\t${price}\nServices List\tUmzug Volumen von (${vol} m³) Von: ${from} Nach: ${to} • Umzugsversicherung • Ab/Anfahrt • Be- und Entladung • Bereitstellung von Luftpolsterfolie und Umzugsfolienrollen • Einrichtung eine Parkzone am Auszugsort • Aufbau von Möbeln • Einrichtung einer Parkzone am Einzugsort • Bereitstellung von Umzugskartons (x40)`,
+      rechnungDaten: `Ange Number\t${code}\nTermin\t${date}\nPrice\t${price}\nServices List\tUmzug Volumen von (${vol} m³) von: ${from} Nach: ${to} • Umzugsversicherung • Ab/Anfahrt • Be- und Entladung • Bereitstellung von Luftpolsterfolie und Umzugsfolienrollen • Einrichtung eine Parkzone am Auszugsort • Aufbau von Möbeln • Einrichtung einer Parkzone am Einzugsort • Bereitstellung von Umzugskartons (x40)`,
 
       angepassteAngebot: `Hallo ${anrede} ${n},\n\nanbei erhalten Sie das angepasste Angebot mit der Kundennummer ${code} für Ihren Umzug im PDF-Format.\n\nWir haben die Änderungen gemäß Ihrer Rückmeldung berücksichtigt, um das Angebot optimal auf Ihre Wünsche und Anforderungen abzustimmen.\n\nBitte prüfen Sie das Dokument in Ruhe. Falls noch Fragen bestehen oder weitere Anpassungen gewünscht sind, stehe ich Ihnen selbstverständlich jederzeit gerne zur Verfügung.\n\nFür Rückfragen geben Sie bitte wie gewohnt die Kundennummer ${code} an, damit wir schnell auf Ihr Anliegen reagieren können.\n\nWir freuen uns darauf, Sie bei Ihrem Umzug bestmöglich zu unterstützen.\n\nMit freundlichen Grüßen,\n\n\nUmzugsberater\n\n📞 WhatsApp: 015560030641\n✉️ E-Mail: info@frankfurtcheckumzug.de\n🌍 Web: www.checkumzug.de\n📠 Fax: 02343 6714070`,
     };
@@ -554,11 +554,12 @@ const [parkzoneAuszug, setParkzoneAuszug] = useState(false);
 
     createCustomer.mutate({
       branchId,
-    title: anrede,
+      title: anrede,
       firstName: name.split(" ")[0] || name || "Unbekannt",
       lastName: name.split(" ").slice(1).join(" ") || "-",
       email: email || undefined,
       phone: phone || undefined,
+      status2: status || "Angaben vollständig",
       versuch: versuch || undefined,
       // Pass reminder date to create. Empty string is normalized to null so
       // the customer is saved with no scheduled reminder (hidden from the list).
@@ -575,8 +576,8 @@ const [parkzoneAuszug, setParkzoneAuszug] = useState(false);
       deliveryFloor: einzugEtage || undefined,
       deliveryElevatorCapacity: einzugFahrstuhl || undefined,
       deliveryParkingDistance: einzugLaufweg || undefined,
-      pickupDate: terminVon || new Date().toISOString().split("T")[0],
-      deliveryDate: terminBis || terminVon || new Date().toISOString().split("T")[0],
+      pickupDate: terminvon || new Date().toISOString().split("T")[0],
+      deliveryDate: terminBis || terminvon || new Date().toISOString().split("T")[0],
       volume: m3 ? parseFloat(m3) : undefined,
       grossPrice: priceBrutto ? parseFloat(priceBrutto) : undefined,
       distance: distanz ? parseFloat(distanz) : undefined,
@@ -630,7 +631,7 @@ const [parkzoneAuszug, setParkzoneAuszug] = useState(false);
         sonstigeLeistungPrice: sonstigePrice,
       }),
       // Audits
-      bezahltVon,
+      bezahltvon,
       betzhalKunde: betzhalKunde || undefined,
       istBezahlt,
       paymentWay,
@@ -700,7 +701,7 @@ const [parkzoneAuszug, setParkzoneAuszug] = useState(false);
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
             <Field label="Name"><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Vor- und Nachname" /></Field>
 
-            <Field label="Umzug Termin Von"><Input type="date" value={terminVon} onChange={(e) => setTerminVon(e.target.value)} placeholder="Von Datum" /></Field>
+            <Field label="Umzug Termin von"><Input type="date" value={terminvon} onChange={(e) => setTerminvon(e.target.value)} placeholder="von Datum" /></Field>
 
             <Field label="Phone"><Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0175 0000000" /></Field>
             <Field label="Filiale">
@@ -716,9 +717,9 @@ const [parkzoneAuszug, setParkzoneAuszug] = useState(false);
                 disabled={loadingBranches || (user?.role === 'branch_manager')}
               >
                 {loadingBranches ? (
-                  <option value="">جاري التحميل...</option>
+                  <option value="">Wird geladen...</option>
                 ) : branches.length === 0 ? (
-                  <option value="">لا توجد فروع نشطة</option>
+                  <option value="">Nein aktive Filialen vorhanden</option>
                 ) : (
                   branches.map((branch) => (
                     <option key={branch.id} value={branch.id}>{branch.name}</option>
@@ -728,7 +729,7 @@ const [parkzoneAuszug, setParkzoneAuszug] = useState(false);
             </Field>
             <Field label="Umzug Termin Bis"><Input type="date" value={terminBis} onChange={(e) => setTerminBis(e.target.value)} placeholder="Bis Datum" /></Field>
 
-            <Field label="موعد التذكير / Erinnerungsdatum">
+            <Field label="Erinnerungsdatum">
               <Input
                 type="date"
                 value={reminderDate}
@@ -740,8 +741,11 @@ const [parkzoneAuszug, setParkzoneAuszug] = useState(false);
             <Field label="Email"><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com" /></Field>
             <Field label="Status">
               <select className="w-full border rounded px-3 py-2 text-sm" value={status} onChange={(e) => setStatus(e.target.value)}>
-                <option>Angaben vollständig</option><option>Nachverfolgen</option>
-                <option>Online-besichtigungtermin</option><option>Besichtigungtermin</option><option>Absagen</option>
+                <option>Angaben vollständig</option>
+                <option>Nachverfolgen</option>
+                <option>Online-besichtigungstermin</option>
+                <option>Besichtigungtermin</option>
+                <option>Absagen</option>
               </select>
             </Field>
             <Field label="Kundennummer"><Input value={kundenummer} readOnly placeholder={KUNDENNUMMER_PLACEHOLDER} /></Field>
@@ -1218,10 +1222,10 @@ const [parkzoneAuszug, setParkzoneAuszug] = useState(false);
         {/* ── 11. AUDITS ── */}
         <Section title="Zahlungsstatuts">
           <div className="space-y-4">
-            {/* صف المعلومات الأساسية */}
+            {/* صف المعل und مات الأساسية */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Field label="Betzhlt von">
-                <select className="w-full border rounded px-3 py-2 text-sm" value={bezahltVon} onChange={e => setBezahltVon(e.target.value)}>
+                <select className="w-full border rounded px-3 py-2 text-sm" value={bezahltvon} onChange={e => setBezahltvon(e.target.value)}>
                   <option>Kunde</option>
                   <option>Firma</option>
                 </select>
@@ -1344,7 +1348,7 @@ const [parkzoneAuszug, setParkzoneAuszug] = useState(false);
               />
             ))}
 
-            {/* ── مجموعة Nachverfolgen ── */}
+            {/* ── مجم und عة Nachverfolgen ── */}
             <NachverfolgenGroup
               keys={["nachverfolgen1", "nachverfolgen2", "nachverfolgen3", "nachverfolgen4"]}
               labels={["Nachverfolgen 1", "Nachverfolgen 2", "Nachverfolgen 3", "Nachverfolgen 4"]}
