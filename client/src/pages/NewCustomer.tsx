@@ -349,7 +349,7 @@ export default function NewCustomer() {
   const [abbauMoebelnM3, setAbbauMoebelnM3] = useState("0");
   const [abbauKueche, setAbbauKueche] = useState(false);
   const [abbauKuecheM3, setAbbauKuecheM3] = useState("0");
-  const [parkzoneAuszug, setParkzoneAuszug] = useState(true);
+const [parkzoneAuszug, setParkzoneAuszug] = useState(false);
   // Services Einzug
   const [auspackservice, setAuspackservice] = useState(false);
   const [auspackKartons, setAuspackKartons] = useState("0");
@@ -357,7 +357,7 @@ export default function NewCustomer() {
   const [aufbauMoebelnM3, setAufbauMoebelnM3] = useState("0");
   const [aufbauKueche, setAufbauKueche] = useState(false);
   const [aufbauKuecheM3, setAufbauKuecheM3] = useState("0");
-  const [parkzoneEinzug, setParkzoneEinzug] = useState(true);
+ const [parkzoneEinzug, setParkzoneEinzug] = useState(false);
   // Kartons
   const [umzugskartons, setUmzugskartons] = useState("0");
   const [kleiderkartons, setKleiderkartons] = useState("0");
