@@ -583,6 +583,18 @@ export default function NewCustomer() {
       distance: distanz ? parseFloat(distanz) : undefined,
       moveType: moveType || undefined,
       services: [summary, anmerkungen, serviceanmerkungen].filter(Boolean).join("\n---\n") || undefined,
+      // Note fields — sent separately so they appear in the edit dialog
+      summary: summary || undefined,
+      anmerkungen: anmerkungen || undefined,
+      serviceanmerkungen: serviceanmerkungen || undefined,
+      moebelListe: moebelListe || undefined,
+      kundenNote: kundenNote || undefined,
+      kontaktinfo: kontaktinfo || undefined,
+      // Finanzen
+      anzahlung: anzahlung ? parseFloat(anzahlung) : undefined,
+      restbetrag: restbetrag ? parseFloat(restbetrag) : undefined,
+      zahlungsart: zahlungsart || undefined,
+      rechnungNr: rechnungNr || undefined,
       servicesJson: JSON.stringify({
         // Auszugsort
         auszugsortEmpfangsservice: einpackservice,
