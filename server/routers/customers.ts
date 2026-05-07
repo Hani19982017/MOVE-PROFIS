@@ -213,6 +213,20 @@ export const customersRouter = router({
         services: z.string().optional(),
         servicesJson: z.string().optional(),
 
+        // Note / text fields
+        summary: z.string().optional(),
+        anmerkungen: z.string().optional(),
+        serviceanmerkungen: z.string().optional(),
+        moebelListe: z.string().optional(),
+        kundenNote: z.string().optional(),
+        kontaktinfo: z.string().optional(),
+
+        // Finanzen fields
+        anzahlung: z.number().optional(),
+        restbetrag: z.number().optional(),
+        zahlungsart: z.string().optional(),
+        rechnungNr: z.string().optional(),
+
         // Audits
         bezahltvon: z.string().optional(),
         betzhalKunde: z.string().optional(),
@@ -325,6 +339,18 @@ export const customersRouter = router({
             moveType: input.moveType,
             services: input.services,
             servicesJson: input.servicesJson,
+            // Note fields — saved separately so MoveDetailDialog can load them individually
+            summary: input.summary,
+            anmerkungen: input.anmerkungen,
+            serviceanmerkungen: input.serviceanmerkungen,
+            moebelListe: input.moebelListe,
+            kundenNote: input.kundenNote,
+            kontaktinfo: input.kontaktinfo,
+            // Finanzen
+            anzahlung: input.anzahlung,
+            restbetrag: input.restbetrag,
+            zahlungsart: input.zahlungsart,
+            rechnungNr: input.rechnungNr,
             paymentStatus: input.istBezahlt ? "paid" : "unpaid",
             bezahltVon: input.bezahltvon,
             betzhalKunde: input.betzhalKunde,
