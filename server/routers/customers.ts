@@ -175,7 +175,7 @@ export const customersRouter = router({
   create: protectedProcedure
     .input(
       z.object({
-        // Branch data - يمكن أن يكون null ويُحدَّد تلقائياً من المستخدم
+        // Branch-Daten - kann null sein, wird dann automatisch aus dem Benutzer ermittelt
         branchId: z.number().nullable().optional(),
         // Customer data
        title: z.string().optional(),
@@ -186,6 +186,7 @@ export const customersRouter = router({
         company: z.string().optional(),
         source: z.string().optional(),
         notes: z.string().optional(),
+        status2: z.string().optional(),
         versuch: z.string().optional(),
         // reminderDate (YYYY-MM-DD) — sales sets a follow-up date here.
         // The customer appears in the Reminders section once this date arrives.
@@ -213,7 +214,7 @@ export const customersRouter = router({
         servicesJson: z.string().optional(),
 
         // Audits
-        bezahltVon: z.string().optional(),
+        bezahltvon: z.string().optional(),
         betzhalKunde: z.string().optional(),
         istBezahlt: z.boolean().optional(),
         paymentWay: z.string().optional(),
@@ -287,6 +288,7 @@ export const customersRouter = router({
             phone: input.phone,
             company: input.company,
             notes: input.notes,
+            status2: input.status2 || "Angaben vollständig",
             versuch: input.versuch,
           })
           .$returningId();
@@ -294,7 +296,7 @@ export const customersRouter = router({
         const customerId = customerResult[0]?.id;
 
         if (!customerId) {
-          throw new Error("فشل استرداد معرف العميل بعد الإنشاء");
+          throw new Error("Konnte Kunden-ID nach dem Erstellen nicht ermitteln");
         }
 
         const kundenummer = formatCustomerNumber(customerId);
@@ -324,7 +326,7 @@ export const customersRouter = router({
             services: input.services,
             servicesJson: input.servicesJson,
             paymentStatus: input.istBezahlt ? "paid" : "unpaid",
-            bezahltVon: input.bezahltVon,
+            bezahltvon: input.bezahltvon,
             betzhalKunde: input.betzhalKunde,
             istBezahlt: input.istBezahlt ? 1 : 0,
             paymentWay: input.paymentWay,
@@ -372,7 +374,7 @@ export const customersRouter = router({
 
 
         if (!moveId) {
-          throw new Error("فشل استرداد معرف الطلب بعد الإنشاء");
+          throw new Error("Konnte Auftrags-ID nach dem Erstellen nicht ermitteln");
         }
 
         if (input.images && input.images.length > 0) {
@@ -473,11 +475,11 @@ export const customersRouter = router({
           kundenummer,
           moveId,
           moveCode,
-          message: "تم حفظ بيانات العميل والطلب بنجاح",
+          message: "Kunden- und Auftragsdaten erfolgreich gespeichert",
         };
       } catch (error) {
         console.error("Error creating customer:", error);
-        throw new Error("فشل حفظ البيانات");
+        throw new Error("Daten konnten nicht gespeichert werden");
       }
     }),
 
@@ -679,7 +681,7 @@ export const customersRouter = router({
         return { success: true };
       } catch (error) {
         console.error("Error deleting customer:", error);
-        throw new Error("فشل حذف العميل");
+        throw new Error("Löschen des Kunden fehlgeschlagen");
       }
     }),
 
@@ -710,7 +712,7 @@ export const customersRouter = router({
         return { success: true, kundenummer: formatCustomerNumber(input.customerId) };
       } catch (error) {
         console.error("Error updating customer:", error);
-        throw new Error("فشل تحديث البيانات");
+        throw new Error("Aktualisieren der Daten fehlgeschlagen");
       }
     }),
 });
