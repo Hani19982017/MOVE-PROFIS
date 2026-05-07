@@ -153,9 +153,7 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
         volume: m3 ? parseFloat(m3) : undefined, distance: distanz ? parseFloat(distanz) : undefined,
         anfahrt: anfahrt ? parseInt(anfahrt) : 0,
         pickupDate: terminVon, deliveryDate: terminBis,
-      // null clears the reminder, value sets/updates it
-      reminderDate: reminderDate ? reminderDate : null,
-      pickupAddress: auszugsort, pickupFloor: auszugEtage,
+        pickupAddress: auszugsort, pickupFloor: auszugEtage,
         pickupElevatorCapacity: auszugFahrstuhl, pickupParkingDistance: auszugLaufweg,
         deliveryAddress: einzugsort, deliveryFloor: einzugEtage,
         deliveryElevatorCapacity: einzugFahrstuhl, deliveryParkingDistance: einzugLaufweg,
@@ -243,7 +241,7 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
   const [mitFotos, setMitFotos] = useState(true);
   const [terminVon, setTerminVon] = useState("");
   const [terminBis, setTerminBis] = useState("");
-  // reminderDate: stored in customerReminders. Empty means no scheduled reminder.
+  // reminderDate: stored in customerReminders. Null/empty means no scheduled reminder.
   const [reminderDate, setReminderDate] = useState("");
   const [umzugscode, setUmzugscode] = useState("");
   const [bezahlt, setBezahlt] = useState(false);
@@ -350,7 +348,7 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
   const [auditRechnungBetrag, setAuditRechnungBetrag] = useState("");
   const [auditRechnungNummer, setAuditRechnungNummer] = useState("");
 
-useEffect(() => {
+  useEffect(() => {
     if (!data) return;
     const { customer, move, images, reminder } = data as any;
     // Load the customer reminder date (from the separate customerReminders table)
@@ -364,7 +362,20 @@ useEffect(() => {
       setName(`${customer.firstName || ""} ${customer.lastName || ""}`.trim());
       setPhone(customer.phone || ""); setEmail(customer.email || "");
 
-      setSitz(customer.sitz || "Frankfurt"); setStatus2(customer.status2 || "Registriert auf Apex");
+      // Determine the displayed Filiale name. Customers store the branch
+      // via `branchId` (not `sitz`), so we look up the branch by id from the
+      // already-loaded `branches` list. Fall back to legacy `customer.sitz`
+      // if for some reason the branch can't be resolved (e.g. a deleted branch),
+      // and only use the first available branch as a last-resort default.
+      const customerBranch = (customer as any).branchId
+        ? branches.find(b => b.id === (customer as any).branchId)
+        : null;
+      const branchDisplayName = customerBranch?.name
+        || (customer as any).sitz
+        || branchOptions[0]
+        || "";
+      setSitz(branchDisplayName);
+      setStatus2(customer.status2 || "Registriert auf Apex");
       setVersuch(customer.versuch || "Versuch 1"); setCallCheck(customer.callCheck || "Nein");
       setShaden(customer.shaden || "Nein"); setAngebotPerPost(!!customer.angebotPerPost);
       setBezahlt(!!customer.bezahlt); setMitFotos(customer.mitFotos !== 0);
@@ -382,21 +393,21 @@ useEffect(() => {
       setEinzugFahrstuhl(move.deliveryElevatorCapacity || "kein Aufzug vorhanden");
       setEinzugLaufweg(move.deliveryParkingDistance || "10 - 20 m");
       // Date loading is defensive: skip invalid dates (e.g., '0000-00-00'
-// from previously-corrupted rows) so the user sees the empty placeholder
-// instead of "Invalid Date" or random garbage. Year < 1971 means the
-// date is the MySQL zero-date sentinel.
-if (move.pickupDate) {
-  const d = new Date(move.pickupDate);
-  if (!isNaN(d.getTime()) && d.getFullYear() > 1970) {
-    setTerminVon(d.toISOString().split("T")[0]);
-  }
-}
-if (move.deliveryDate) {
-  const d = new Date(move.deliveryDate);
-  if (!isNaN(d.getTime()) && d.getFullYear() > 1970) {
-    setTerminBis(d.toISOString().split("T")[0]);
-  }
-}
+      // from previously-corrupted rows) so the user sees the empty placeholder
+      // instead of "Invalid Date" or random garbage. Year < 1971 means the
+      // date is the MySQL zero-date sentinel.
+      if (move.pickupDate) {
+        const d = new Date(move.pickupDate);
+        if (!isNaN(d.getTime()) && d.getFullYear() > 1970) {
+          setTerminVon(d.toISOString().split("T")[0]);
+        }
+      }
+      if (move.deliveryDate) {
+        const d = new Date(move.deliveryDate);
+        if (!isNaN(d.getTime()) && d.getFullYear() > 1970) {
+          setTerminBis(d.toISOString().split("T")[0]);
+        }
+      }
       setAuszugFlaeche(move.auszugFlaeche ? String(move.auszugFlaeche) : "");
       setAuszugZimmer(move.auszugZimmer ? String(move.auszugZimmer) : "");
       setEinzugFlaeche(move.einzugFlaeche ? String(move.einzugFlaeche) : "");
@@ -525,6 +536,8 @@ if (move.deliveryDate) {
       volume: m3 ? parseFloat(m3) : undefined, distance: distanz ? parseFloat(distanz) : undefined,
       anfahrt: anfahrt ? parseInt(anfahrt) : 0,
       pickupDate: terminVon, deliveryDate: terminBis,
+      // null clears the reminder, empty/undefined leaves it untouched
+      reminderDate: reminderDate ? reminderDate : null,
       pickupAddress: auszugsort, pickupFloor: auszugEtage,
       pickupElevatorCapacity: auszugFahrstuhl, pickupParkingDistance: auszugLaufweg,
       deliveryAddress: einzugsort, deliveryFloor: einzugEtage,
@@ -649,10 +662,10 @@ if (move.deliveryDate) {
               <Field label="Umzug Termin Von">{inp(terminVon, setTerminVon, { type: "date", placeholder: "Von Datum" })}</Field>
               <Field label="Phone">{inp(phone, setPhone, { placeholder: "0175 0000000" })}</Field>
               <Field label="Filiale">{sel(sitz, setSitz, branchOptions)}</Field>
-            <Field label="Umzug Termin Bis">{inp(terminBis, setTerminBis, { type: "date", placeholder: "Bis Datum" })}</Field>
+              <Field label="Umzug Termin Bis">{inp(terminBis, setTerminBis, { type: "date", placeholder: "Bis Datum" })}</Field>
               <Field label="Email">{inp(email, setEmail, { type: "email", placeholder: "email@example.com" })}</Field>
               <Field label="موعد التذكير / Erinnerungsdatum">{inp(reminderDate, setReminderDate, { type: "date", placeholder: "Optional" })}</Field>
-              <Field label="Status">{sel(status2, setStatus2, ["Angaben vollständig","Nachverfolgen","Online-besichtigungtermin","Besichtigungtermin","Absagen"])}</Field>
+              <Field label="Status">{sel(status2, setStatus2, ["Registriert auf Apex","Angebot gesendet","Bestaetigt","Abgesagt","Abgeschlossen"])}</Field>
               <Field label="Kundennummer">{inp(umzugscode, setUmzugscode, { placeholder: "00001", readOnly: true })}</Field>
               <Field label="Price Brutto (EUR)">{inp(priceBrutto, setPriceBrutto, { type: "number", placeholder: "0" })}</Field>
               <Field label="Versuch">{sel(versuch, setVersuch, ["Versuch 1","Versuch 2","Versuch 3","Versuch 4","Versuch 5","Versuch 6"])}</Field>
@@ -707,9 +720,9 @@ if (move.deliveryDate) {
               <Field label="Auftragsstatus">
                 {ro ? <div className="w-full border rounded px-3 py-2 text-sm bg-gray-50">{moveStatus}</div>
                     : <select className="w-full border rounded px-3 py-2 text-sm" value={moveStatus} onChange={e => setMoveStatus(e.target.value)}>
-                        <option value="pending">Ausstehend</option><option value="confirmed">Registriert Auf Apex</option>
-                        <option value="in_progress">Abgeschlossen</option><option value="completed">Storniert</option>
-                        
+                        <option value="pending">Angaben vollständig</option><option value="confirmed">Nachverfolgen</option>
+                        <option value="in_progress">Online-besichtigungtermin</option><option value="completed">Besichtigungtermin</option>
+                        <option value="cancelled">Absagen</option>
                       </select>}
               </Field>
             </div>
