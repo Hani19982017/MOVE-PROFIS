@@ -1,41 +1,41 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 
-// ── تعريف البطاقات حسب الدور ──────────────────────────────────────────────────
-// admin: كل شيء
+// ── Karten-Definitionen pro Rolle ──────────────────────────────────────────
+// admin: alles
 const ADMIN_CARDS = [
-  { href: "/new-customer",  emoji: "👥", title: "العملاء و إدارتها",          desc: "إضافة بيانات العملاء" },
-  { href: "/orders",        emoji: "📦", title: "متابعة العملاء و إدارتها",    desc: "متابعة الإستحواذ على العميل" },
+  { href: "/new-customer",  emoji: "👥", title: "Kunden & Verwaltung",          desc: "Kundendaten hinzufügen" },
+  { href: "/orders",        emoji: "📦", title: "Kundenbetreuung & Verwaltung",    desc: "Kundengewinnung" },
   { href: "/reminders",     emoji: "⏰", title: "Erinnerungen & Kontaktstatus", desc: "Kunden, die nachverfolgt werden müssen" },
-  { href: "/rechnungen",    emoji: "🧾", title: "الفواتير",                    desc: "عرض وإدارة الفواتير والمدفوعات" },
-  { href: "/admin",         emoji: "📊", title: "لوحة التحكم",                 desc: "إدارة العملاء والطلبات والمدفوعات" },
-  { href: "/worker",        emoji: "👷", title: "مهام العمال اليومية",          desc: "عرض المهام والعناوين والصور" },
-  { href: "/admin-reports", emoji: "📈", title: "التقارير المالية الإدارية",    desc: "التلف والشكاوى والإيرادات" },
-  { href: "/branches",      emoji: "🏢", title: "إدارة الفروع",                desc: "إضافة الفروع وتعطيلها وإعادة تفعيلها" },
-  { href: "/users",         emoji: "🔐", title: "إدارة المستخدمين",            desc: "الصلاحيات والأدوار والحذف", adminOnly: true },
+  { href: "/rechnungen",    emoji: "🧾", title: "Rechnungen",                    desc: "Rechnungen Zahlungen anzeigen verwalten" },
+  { href: "/admin",         emoji: "📊", title: "Dashboard",                 desc: "Verwaltung von Kunden, Aufträgen Zahlungen" },
+  { href: "/worker",        emoji: "👷", title: "Tägliche Mitarbeiteraufgaben",          desc: "Aufgaben, Adressen Fotos anzeigen" },
+  { href: "/admin-reports", emoji: "📈", title: "Finanz- Verwaltungsberichte",    desc: "Schäden, Beschwerden & Umsatz" },
+  { href: "/branches",      emoji: "🏢", title: "Filialverwaltung",                desc: "Filialen hinzufügen, deaktivieren reaktivieren" },
+  { href: "/users",         emoji: "🔐", title: "Benutzerverwaltung",            desc: "Berechtigungen, Rollen Löschungen", adminOnly: true },
 ];
 
-// sales: لا يرى الصفحة الرئيسية (admin) ولا إدارة المستخدمين ولا التقارير الإدارية
+// sales: sieht weder Startseite (admin) noch Benutzerverwaltung noch Verwaltungsberichte
 const SALES_CARDS = [
-  { href: "/new-customer", emoji: "👥", title: "العملاء و إدارتها",          desc: "إضافة بيانات العملاء" },
-  { href: "/orders",       emoji: "📦", title: "متابعة العملاء و إدارتها",             desc: "متابعة الإستحواذ على العميل" },
+  { href: "/new-customer", emoji: "👥", title: "Kunden & Verwaltung",          desc: "Kundendaten hinzufügen" },
+  { href: "/orders",       emoji: "📦", title: "Kundenbetreuung & Verwaltung",             desc: "Kundengewinnung" },
   { href: "/reminders",    emoji: "⏰", title: "Erinnerungen & Kontaktstatus", desc: "Kunden, die nachverfolgt werden müssen" },
-  { href: "/rechnungen",   emoji: "🧾", title: "الفواتير",            desc: "عرض وإدارة الفواتير والمدفوعات" },
-  { href: "/worker",       emoji: "👷", title: "مهام العمال اليومية",         desc: "عرض المهام والعناوين" },
+  { href: "/rechnungen",   emoji: "🧾", title: "Rechnungen",            desc: "Rechnungen Zahlungen anzeigen verwalten" },
+  { href: "/worker",       emoji: "👷", title: "Tägliche Mitarbeiteraufgaben",         desc: "Aufgaben Adressen anzeigen" },
 ];
 
-// worker / supervisor: فقط لوحة العامل
+// worker / supervisor: nur das Mitarbeiter-Dashboard
 const WORKER_CARDS = [
-  { href: "/worker",       emoji: "👷", title: "مهامي اليوم",         desc: "عرض المهام والعناوين والصور" },
+  { href: "/worker",       emoji: "👷", title: "Meine Aufgaben heute",         desc: "Aufgaben, Adressen Fotos anzeigen" },
 ];
 
 // branch_manager: read-only view of orders, invoices, worker tasks, and reports.
 // Cannot add customers, cannot manage branch users.
 const BRANCH_MANAGER_CARDS = [
-  { href: "/orders",       emoji: "📦", title: "متابعة العملاء و إدارتها",             desc: "متابعة الإستحواذ على العميل" },
-  { href: "/rechnungen",   emoji: "🧾", title: "الفواتير",            desc: "عرض فواتير الفرع" },
-  { href: "/worker",       emoji: "👷", title: "مهام العمال اليومية",         desc: "عرض المهام والعناوين" },
-  { href: "/admin-reports",emoji: "📈", title: "التقارير المالية الإدارية",             desc: "التلف والشكاوى والإيرادات" },
+  { href: "/orders",       emoji: "📦", title: "Kundenbetreuung & Verwaltung",             desc: "Kundengewinnung" },
+  { href: "/rechnungen",   emoji: "🧾", title: "Rechnungen",            desc: "Filialrechnungen anzeigen" },
+  { href: "/worker",       emoji: "👷", title: "Tägliche Mitarbeiteraufgaben",         desc: "Aufgaben Adressen anzeigen" },
+  { href: "/admin-reports",emoji: "📈", title: "Finanz- Verwaltungsberichte",             desc: "Schäden, Beschwerden & Umsatz" },
 ];
 
 function getCardsForRole(role: string) {
@@ -45,17 +45,17 @@ function getCardsForRole(role: string) {
     case "worker":
     case "supervisor":     return WORKER_CARDS;
     case "branch_manager": return BRANCH_MANAGER_CARDS;
-    default:               return SALES_CARDS; // user عادي = مثل sales
+    default:               return SALES_CARDS; // normaler user = wie sales
   }
 }
 
 function getRoleLabel(role: string) {
   const map: Record<string, string> = {
-    admin:          "مدير / صاحب شركة",
-    sales:          "فريق المبيعات",
-    worker:         "عامل",
-    supervisor:     "مشرف",
-    branch_manager: "مدير فرع",
+    admin:          "Geschäftsführer / Inhaber",
+    sales:          "Vertriebsteam",
+    worker:         "Mitarbeiter",
+    supervisor:     "Aufsicht",
+    branch_manager: "Filialleiter",
   };
   return map[role] ?? role;
 }
@@ -79,7 +79,7 @@ export default function Home() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">جاري التحميل...</p>
+        <p className="text-gray-500">Wird geladen...</p>
       </div>
     );
   }
@@ -94,9 +94,9 @@ export default function Home() {
                 MOVE PROFIS · Management System
               </span>
               <div className="space-y-4">
-                <h1 className="text-4xl font-bold leading-tight sm:text-5xl">إدارة العملاء والطلبات والعمال والفواتير</h1>
+                <h1 className="text-4xl font-bold leading-tight sm:text-5xl">Kundenverwaltung, Aufträge, Mitarbeiter Rechnungen</h1>
                 <p className="max-w-2xl text-lg leading-8 text-white/80">
-                  اختر نوع الدخول الصحيح من البداية: المدير يدخل عبر البريد الإلكتروني الثابت وكلمة سر خاصة، بينما يدخل العمال وبقية المستخدمين عبر اسم المستخدم وكلمة السر.
+                  Wählen Sie den richtigen Zugangstyp: Der Administrator meldet sich über die feste E-Mail mit Passwort an, Mitarbeiter und andere Benutzer
                 </p>
               </div>
             </div>
@@ -107,15 +107,15 @@ export default function Home() {
                   alt="Move Profis"
                   className="mb-4 h-24 w-auto rounded-2xl border border-[#d97e3a]/40 bg-white px-6 py-4 shadow-lg"
                 />
-                <h2 className="text-2xl font-semibold">أهلاً بك في MOVE PROFIS</h2>
-                <p className="mt-2 text-sm leading-7 text-white/75">اختر القسم المناسب لك: المدير له دخول مستقل عبر البريد الإلكتروني الثابت مع كلمة سر خاصة، والعمال وبقية المستخدمين لهم صفحة دخول مستقلة عبر اسم المستخدم وكلمة السر.</p>
+                <h2 className="text-2xl font-semibold">Willkommen bei MOVE PROFIS</h2>
+                <p className="mt-2 text-sm leading-7 text-white/75">Wählen Sie den passenden Bereich: Der Administrator meldet sich separat über die feste E-Mail an </p>
               </div>
               <div className="space-y-3">
                 <Button asChild size="lg" className="w-full bg-[#d97e3a] text-white hover:bg-[#bd682b]">
-                  <a href="/login#manager">دخول المدير عبر البريد الإلكتروني وكلمة السر</a>
+                  <a href="/login#manager">Administrator-Anmeldung via E-Mail & Passwort</a>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="w-full border-white/25 bg-white/5 text-white hover:bg-white/10 hover:text-white">
-                  <a href="/login#staff">دخول العمال وبقية المستخدمين</a>
+                  <a href="/login#staff">Mitarbeiter & andere Benutzer Anmeldung</a>
                 </Button>
               </div>
             </div>
@@ -135,9 +135,9 @@ export default function Home() {
                 MOVE PROFIS DASHBOARD
               </span>
               <div className="space-y-3">
-                <h1 className="text-3xl font-bold text-[#1a4d6d] sm:text-4xl">مرحباً {user?.name}، إدارة العمليات أصبحت في مكان واحد</h1>
+                <h1 className="text-3xl font-bold text-[#1a4d6d] sm:text-4xl">Hallo {user?.name}, alle Betriebsvorgänge an einem Ort</h1>
                 <p className="max-w-3xl text-base leading-8 text-slate-600">
-                  استخدم البطاقات التالية للوصول السريع إلى إدارة العملاء، متابعة الطلبات، مهام العمال، التقارير، الفواتير، والفروع ضمن واجهة موحّدة تحمل الهوية البصرية الخاصة بـ Umzug Profis.
+                  Nutzen Sie die Karten unten für schnellen Zugriff auf Kundenverwaltung, Auftragsverfolgung, Mitarbeiteraufgaben, Berichte, Rechnungen Filialen 
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
@@ -145,7 +145,7 @@ export default function Home() {
                   {getRoleLabel(role)}
                 </span>
                 <span className="inline-flex rounded-full border border-[#1a4d6d]/15 bg-[#eaf2f7] px-3 py-1 text-xs font-medium text-[#1a4d6d]">
-                  اسم المستخدم: {user?.username || "—"}
+                  Benutzername: {user?.username || "—"}
                 </span>
               </div>
             </div>
@@ -155,12 +155,12 @@ export default function Home() {
                 alt="Move Profis"
                 className="h-auto w-full max-w-[260px] rounded-[1.75rem] border border-[#d97e3a]/35 bg-white px-5 py-4 shadow-lg"
               />
-              <p className="text-right text-sm text-slate-500">نظام إدارة عمليات النقل والشحن</p>
+              <p className="text-right text-sm text-slate-500">System zur Verwaltung von Transport Spedition</p>
               <Button
                 onClick={() => logout()}
                 className="bg-[#1a4d6d] text-white hover:bg-[#14394f]"
               >
-                تسجيل الخروج
+                Abmelden
               </Button>
             </div>
           </div>
@@ -179,7 +179,7 @@ export default function Home() {
               <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#1a4d6d] via-[#245f86] to-[#d97e3a]" />
               {(card as any).adminOnly && (
                 <span className="absolute left-4 top-4 rounded-full border border-orange-200 bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800">
-                  للمدير فقط
+                  Nur für Administrator
                 </span>
               )}
               <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#eaf2f7] text-3xl shadow-inner">
@@ -188,7 +188,7 @@ export default function Home() {
               <h2 className="mb-2 text-xl font-semibold text-[#1a4d6d]">{card.title}</h2>
               <p className="leading-7 text-slate-600">{card.desc}</p>
               <div className="mt-5 inline-flex items-center text-sm font-medium text-[#d97e3a]">
-                فتح القسم
+                Bereich öffnen
               </div>
             </a>
           ))}
@@ -197,7 +197,7 @@ export default function Home() {
         {(role === "worker" || role === "supervisor") && (
           <div className="mt-8 rounded-2xl border border-orange-200 bg-orange-50 p-4 text-center shadow-sm">
             <p className="text-sm text-orange-800">
-              مرحباً {user?.name}! يمكنك الوصول إلى مهامك اليومية من خلال لوحة العامل أعلاه.
+              Hallo {user?.name}! Sie können über das Mitarbeiter-Dashboard oben auf Ihre täglichen Aufgaben zugreifen.
             </p>
           </div>
         )}
