@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { X, Plus, Minus, Upload, Copy, Check, ImageIcon, FileText } from "lucide-react";
+import { X, Plus, Minus, Upload, Copy, Check, ImageIcon, FileText, Pencil } from "lucide-react";
 
 async function compressImage(file: File): Promise<{ base64: string; name: string }> {
   return new Promise((resolve, reject) => {
@@ -66,19 +66,129 @@ function YesNo({ label, value, onChange, ro }: { label: string; value: boolean; 
   );
 }
 
-function MessageItem({ label, message, copied, onCopy }: { label: string; message: string; copied: boolean; onCopy: () => void }) {
+function MessageItem({
+  label,
+  message,
+  copied,
+  onCopy,
+}: {
+  label: string;
+  message: string;
+  copied: boolean;
+  onCopy: (text: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editedText, setEditedText] = useState(message);
+
+  // Keep the edited text in sync when the underlying form data changes,
+  // unless the user is actively editing.
+  useEffect(() => {
+    if (!editing) setEditedText(message);
+  }, [message, editing]);
+
+  return (
+    <div className="border border-gray-200 rounded">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center gap-2 px-4 py-2 text-left text-sm bg-gray-50 hover:bg-gray-100"
+      >
+        {open ? <Minus size={12} /> : <Plus size={12} />}
+        <span className="flex-1">{label}</span>
+        {open && (
+          <span
+            onClick={e => { e.stopPropagation(); setEditing(!editing); }}
+            className="flex items-center gap-1 px-2 text-xs text-gray-400 hover:text-[#1a4d6d]"
+          >
+            {editing ? <><X size={11} /> Schließen</> : <><Pencil size={11} /> Bearbeiten</>}
+          </span>
+        )}
+      </button>
+      {open && (
+        <div className="p-3">
+          {editing ? (
+            <>
+              <textarea
+                value={editedText}
+                onChange={e => setEditedText(e.target.value)}
+                rows={12}
+                className="w-full resize-y rounded border border-[#1a4d6d]/25 bg-white p-3 text-xs font-sans leading-relaxed text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#1a4d6d]"
+                dir="ltr"
+              />
+              <div className="flex gap-2 mt-2">
+                <Button type="button" onClick={() => onCopy(editedText)}
+                  className="bg-[#1a4d6d] text-xs text-white hover:bg-[#14394f]" size="sm">
+                  {copied ? <><Check size={12} className="mr-1" /> Kopiert!</> : <><Copy size={12} className="mr-1" /> Nachricht kopieren</>}
+                </Button>
+                <Button type="button" variant="outline" size="sm"
+                  className="text-xs" onClick={() => setEditedText(message)}>
+                  Zurücksetzen
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <pre className="whitespace-pre-wrap text-xs text-gray-700 bg-gray-50 rounded p-3 border font-sans leading-relaxed">
+                {editedText}
+              </pre>
+              <Button type="button" onClick={() => onCopy(editedText)}
+                className="mt-2 bg-[#1a4d6d] text-xs text-white hover:bg-[#14394f]" size="sm">
+                {copied ? <><Check size={12} className="mr-1" /> Kopiert!</> : <><Copy size={12} className="mr-1" /> Nachricht kopieren</>}
+              </Button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Wraps the four Nachverfolgen messages into a single collapsible row so
+// the dialog matches the NewCustomer layout exactly.
+function NachverfolgenGroup({
+  keys,
+  labels,
+  buildMessage,
+  copied,
+  setCopied,
+}: {
+  keys: string[];
+  labels: string[];
+  buildMessage: (key: string) => string;
+  copied: string | null;
+  setCopied: (v: string | null) => void;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <div className="border border-gray-200 rounded">
-      <button type="button" onClick={() => setOpen(!open)} className="w-full flex items-center gap-2 px-4 py-2 text-left text-sm bg-gray-50 hover:bg-gray-100">
-        {open ? <Minus size={12} /> : <Plus size={12} />} {label}
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center gap-2 px-4 py-2 text-left text-sm bg-gray-50 hover:bg-gray-100"
+      >
+        {open ? <Minus size={12} /> : <Plus size={12} />}
+        <span className="flex-1 font-medium">Nachverfolgen</span>
+        <span className="text-xs text-gray-400">{keys.length} Nachrichten</span>
       </button>
-      {open && <div className="p-3">
-        <pre className="whitespace-pre-wrap text-xs text-gray-700 bg-gray-50 rounded p-3 border font-sans leading-relaxed">{message}</pre>
-        <Button type="button" onClick={onCopy} className="mt-2 bg-[#00aabb] hover:bg-[#008899] text-white text-xs" size="sm">
-          {copied ? <><Check size={12} className="mr-1" />Kopiert!</> : <><Copy size={12} className="mr-1" />Nachricht kopieren</>}
-        </Button>
-      </div>}
+      {open && (
+        <div className="p-2 space-y-2">
+          {keys.map((key, i) => (
+            <MessageItem
+              key={key}
+              label={labels[i]}
+              message={buildMessage(key)}
+              copied={copied === key}
+              onCopy={(text) => {
+                navigator.clipboard.writeText(text);
+                setCopied(key);
+                setTimeout(() => setCopied(null), 2000);
+                toast.success("Nachricht kopiert!");
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -486,20 +596,36 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
   }, []);
 
   const buildMessage = (type: string) => {
-    const n = name || "[Name]", code = umzugscode || "[Kundennummer]", date = terminVon || "[Datum]";
-    const price = priceBrutto || "[Preis]", vol = m3 || "[m3]";
-    const from = auszugsort || "[Auszugsort]", to = einzugsort || "[Einzugsort]", dist = distanz || "[km]";
-    const t: Record<string, string> = {
-      willkommen: `Hallo ${anrede} ${n},\n\nvielen Dank fuer Ihre Anfrage bei Check Umzug!\n\nKundennummer: ${code}\nVon: ${from}\nNach: ${to}\n\nMit freundlichen Gruessen,\nIhr Check Umzug Team`,
-      ersteNachricht: `Hallo ${anrede} ${n},\n\nvielen Dank fuer Ihre Anfrage. Wir melden uns bald.\n\nMit freundlichen Gruessen,\nUmzugsberater`,
-      angebotSchicken: `Hallo ${anrede} ${n},\n\nIhr Angebot (${code}):\n\nDatum: ${date}\nVolumen: ${vol} m3\nPreis: ${price} EUR\nVon: ${from}\nNach: ${to}\nDistanz: ${dist} km\n\nMit freundlichen Gruessen,\nUmzugsberater`,
-      angebotBestaetigt: `Hallo ${anrede} ${n},\n\nIhr Termin am ${date} ist bestaetigt.\n\nKundennummer: ${code}\n\nMit freundlichen Gruessen,\nUmzugsberater`,
-      absage: `Hallo ${anrede} ${n},\n\nleider koennen wir Ihren Termin nicht erfuellen.\n\nMit freundlichen Gruessen,\nUmzugsberater`,
-      nachverfolgen: `Hallo ${anrede} ${n},\n\nhaben Sie noch Interesse an Angebot ${code}?\n\nMit freundlichen Gruessen,\nUmzugsberater`,
-      rechnungDaten: `Hallo ${anrede} ${n},\n\nRechnung fuer Umzug am ${date}.\n\nBetrag: ${price} EUR\nKundennummer: ${code}\n\nMit freundlichen Gruessen,\nUmzugsberater`,
-      angepassteAngebot: `Hallo ${anrede} ${n},\n\nangepasstes Angebot:\n\nKundennummer: ${code}\nPreis: ${price} EUR\nDatum: ${date}\n\nMit freundlichen Gruessen,\nUmzugsberater`,
+    const n = name || "[Name]";
+    const code = umzugscode || "[Kundennummer]";
+    const date = terminVon || "[Datum]";
+    const price = priceBrutto || "[Preis]";
+    const vol = m3 || "[m³]";
+    const from = auszugsort || "[Auszugsort]";
+    const to = einzugsort || "[Einzugsort]";
+    const dist = distanz || "[km]";
+
+    const templates: Record<string, string> = {
+      willkommen: `Hallo ${anrede} ${n},\n\nvielen Dank für Ihre Anfrage zu Ihrem geplanten Umzug von ${from} nach ${to}.\n\nGerne erstellen wir Ihnen ein verbindliches Festpreisangebot für Ihren Umzug. Unser Ziel ist es, Ihren Umzug transparent, zuverlässig und stressfrei zu planen.\n\nDamit wir Ihr Angebot korrekt kalkulieren und Ihren Wunschtermin vormerken können, benötigen wir noch einige kurze Informationen.\n\nWie möchten Sie die Details Ihres Umzugs klären?\n📞 Telefonische Beratung\nGerne besprechen wir alle Details direkt mit Ihnen. Bitte senden Sie uns hierfür Ihre Rufnummer, damit wir Sie kurzfristig kontaktieren können.\n📹 Online-Besichtigung / Videotermin\nBei einem kurzen Termin können wir Ihr Umzugsgut gemeinsam durchgehen. Bitte senden Sie uns zwei Terminvorschläge sowie Ihre Rufnummer.\n✉️ Schriftliche Abstimmung\nAlternativ senden wir Ihnen gerne eine strukturierte Umzugsliste mit allen Fragen, damit wir Ihr Angebot schnell und präzise erstellen können.\nHinweis: Ihre Kundennummer lautet ${code}. Bitte geben Sie diese Nummer bei Rückfragen oder weiterer Korrespondenz immer an.\n\nWir freuen uns darauf, Sie bei Ihrem Umzug zu unterstützen und stehen Ihnen bei Fragen jederzeit gerne zur Verfügung.\n\nMit freundlichen Grüßen\n\n\nUmzugsberater\n\n📞 WhatsApp: 0234 60142460\n✉️ E-Mail: info@frankfurtcheckumzug.de\n🌍 Web: www.checkumzug.de\n📠 Fax: 02343 6714070`,
+
+      ersteNachricht: `Hallo ${anrede} ${n} ,\n\nVielen Dank für Ihr Interesse an unseren Umzugsdienstleistungen! Wir freuen uns, Sie bei Ihrem Umzug unterstützen zu dürfen und möchten Ihnen ein maßgeschneidertes Angebot erstellen.\n\nDamit wir Ihre Anfrage optimal bearbeiten können, bitten wir Sie, uns noch einige weitere Informationen mitzuteilen:\n\n1️⃣ Eine Liste oder Fotos Ihrer Möbelstücke\n2️⃣ Die Anzahl der Umzugskartons, die Sie packen möchten\n3️⃣ Benötigen Sie Umzugskartons von uns? Falls ja, wie viele?\n4️⃣ Sollen wir Ihre Möbel für Sie ab- und wieder aufbauen?\n5️⃣ Gibt es sperrige oder besonders schwere Möbelstücke, die besondere Aufmerksamkeit erfordern?\n6️⃣ Ihr gewünschtes Umzugsdatum\n7️⃣ Ihre Rufnummer für Rückfragen\n8️⃣ Ihre E-Mail-Adresse für die Angebotserstellung\nSobald wir diese Informationen erhalten haben, erstellen wir Ihnen gerne ein unverbindliches Angebot.\nFalls Sie Fragen haben, stehe ich Ihnen jederzeit gerne zur Verfügung. Ich freue mich auf Ihre Rückmeldung!\n\nHinweis: Ihre Kundennummer lautet ${code}. Bitte nutzen Sie diese Nummer bei Rückfragen oder für weitere Korrespondenz.\n\nMit freundlichen Grüßen,\n\n\nUmzugsberater\n\n📞 WhatsApp: 0234 60142460\n✉️ E-Mail: info@frankfurtcheckumzug.de\n🌍 Web: www.checkumzug.de\n📠 Fax: 02343 6714070`,
+
+      angebotSchicken: `Hallo ${anrede} ${n},\n\nanbei erhalten Sie Ihr individuelles Umzugsangebot mit der Kundennummer (${code}).\n\nZusammenfassung der Angebotsdetails:\n📅 Umzugsdatum: ${date}\n📦 Berechnetes Volumen: ${vol} m³\n💰 Brutto-Preis: ${price} €\n📍 Auszugsort: ${from}\n🏠 Einzugsort: ${to}\n🚛 Distanz: ${dist} km\n🔧 Leistungen: (laut Angebot)\nWarum sollten Sie sich für uns entscheiden?\n✅ Zuverlässigkeit & Erfahrung: Jahrelange Erfahrung im Umzugsbereich – wir wissen, worauf es ankommt!\n✅ Pünktliches Erscheinen: Unsere Teams sind zuverlässig und erscheinen zur vereinbarten Zeit.\n✅ Genügend Einsatzkräfte: Wir stellen sicher, dass ausreichend Personal für einen schnellen und reibungslosen Umzug vorhanden ist.\n✅ Faire Preise: Transparente und wettbewerbsfähige Preise ohne versteckte Kosten.\n✅ Sorgfältiger Umgang mit Ihrem Eigentum: Unsere geschulten Mitarbeiter behandeln Ihr Umzugsgut mit höchster Sorgfalt.\n✅ Flexibilität: Sie können Ihr Umzugsdatum und viele weitere Details später kostenlos anpassen!\n✅ Festpreis-Garantie: Keine versteckten Kosten – Sie zahlen genau den vereinbarten Preis!\n✅ Zufriedenheitsgarantie: Ihre Zufriedenheit steht an erster Stelle – wir arbeiten professionell und zuverlässig, damit Ihr Umzug stressfrei verläuft!\nSo können Sie uns beauftragen:\n✔ Zur Reservierung Ihres Umzugstermins reicht eine schriftliche Bestätigung hier im Chat.\n✔ Später können Sie uns das unterschriebene Angebot zukommen lassen.\n🔹 Zahlungsinformationen:\n💳 Überweisung: (vorab, spätestens 7 Tage vor dem Umzugstag)\n💵 Barzahlung: am Umzugstag (vor der Entladung)\nBitte prüfen Sie das Angebot und geben Sie uns eine Rückmeldung, ob Sie den Umzug mit uns durchführen möchten. Bei Fragen stehen wir Ihnen jederzeit zur Verfügung.\n\nMit freundlichen Grüßen,\n\n\nUmzugsberater\n\n📞 WhatsApp: 0234 60142460\n✉️ E-Mail: info@frankfurtcheckumzug.de\n🌍 Web: www.checkumzug.de\n📠 Fax: 02343 6714070`,
+
+      angebotBestaetigt: `Hallo ${anrede} ${n},\n\nvielen Dank, dass Sie sich für uns entschieden haben! Wir freuen uns, Ihren Umzug durchführen zu dürfen und bestätigen hiermit Ihre Buchung.\n\n📦 Auftragsdetails:\n📅 Umzugsdatum: ${date}\n📍 Auszugsadresse: ${from}\n🏠 Einzugsadresse: ${to}\n⏰ Beginn des Umzugs: Zwischen 08:30 und 09:00 Uhr am Auszugsort\n💰 Gesamtbetrag: ${price} €\n💳 Zahlungsinformationen:\nSie können die Zahlung wie folgt vornehmen:\n\n💵 Barzahlung: am Umzugstag vor der Entladung.\n🏦 Banküberweisung: mindestens 7 Tage vor dem Umzug auf folgendes Konto:\nEmpfänger: Fadel Almohammad\nBankinstitut: Sparkasse Frankfurt\nIBAN: DE63 5019 0000 6000 4589 60\nVerwendungszweck: (Ihre Kundennummer ${code})\n\n🔔 Zusätzlicher Service: Planen Sie, Ihre alte Wohnung zu vermieten oder zu verkaufen? Wir unterstützen Sie gerne dabei, einen passenden Mieter oder Käufer gemäß Ihren individuellen Anforderungen zu finden.\nWenn Sie unsere zusätzlichen Dienstleistungen in Anspruch nehmen, gewähren wir Ihnen einen Rabatt von 10 % auf Ihre Umzugskosten – teilen Sie uns einfach mit, wenn Sie Interesse an diesem Service haben.\n\nWir freuen uns auf eine erfolgreiche Zusammenarbeit und einen reibungslosen Umzug!\n\nMit freundlichen Grüßen,\n\n\nUmzugsberater\n\n📞 WhatsApp: 0234 60142460\n✉️ E-Mail: info@frankfurtcheckumzug.de\n🌍 Web: www.checkumzug.de\n📠 Fax: 02343 6714070`,
+
+      absage: `Hallo ${anrede} ${n},\n\nvielen Dank für Ihre Rückmeldung zu unserem Angebot. Wir bedauern es natürlich, dass Sie sich aktuell gegen eine Zusammenarbeit mit uns entschieden haben.\n\nGleichzeitig möchten wir betonen, dass uns Ihr Auftrag sehr am Herzen liegt und wir weiterhin überzeugt sind, Ihnen die beste Lösung bieten zu können – sowohl in Qualität als auch in Konditionen.\n\nFalls es an preislichen Aspekten liegt, sind wir gerne bereit, Ihnen entgegenzukommen und eine attraktive Ermäßigung anzubieten.\n\nLassen Sie uns gerne noch einmal ins Gespräch kommen, um gemeinsam eine Lösung zu finden, die Ihren Erwartungen bestmöglich entspricht. Wir freuen uns, von Ihnen zu hören!\n\nMit freundlichen Grüßen,\n\n\nUmzugsberater\n\n📞 WhatsApp: 0234 60142460\n✉️ E-Mail: info@frankfurtcheckumzug.de\n🌍 Web: www.checkumzug.de\n📠 Fax: 02343 6714070`,
+
+      nachverfolgen1: `Hallo ${anrede} ${n},\nich hoffe, Sie konnten unser Angebot mit der Kundennummer ${code} inzwischen in Ruhe prüfen.\nGibt es Punkte, die wir für Sie erläutern oder anpassen dürfen? Gerne unterstütze ich Sie dabei, die für Sie passende Lösung zu finden.\n\nMit freundlichen Grüßen,\n\n\nUmzugsberater\n\n📞 WhatsApp: 015560030641\n✉️ E-Mail: info@frankfurtcheckumzug.de\n🌍 Web: www.checkumzug.de\n📠 Fax: 02343 6714070`,
+      nachverfolgen2: `Hallo ${anrede} ${n},\nunser Ziel ist es, dass unser Angebot mit der Kundennummer ${code} exakt Ihren Vorstellungen entspricht.\nFalls Sie Änderungen wünschen oder zusätzliche Leistungen aufnehmen möchten, lassen Sie es mich bitte wissen – ich setze dies gerne für Sie um.\n\nMit freundlichen Grüßen,\n\n\nUmzugsberater\n\n📞 WhatsApp: 015560030641\n✉️ E-Mail: info@frankfurtcheckumzug.de\n🌍 Web: www.checkumzug.de\n📠 Fax: 02343 6714070`,
+      nachverfolgen3: `Hallo ${anrede} ${n},\nda ich bislang noch keine Rückmeldung von Ihnen erhalten habe, möchte ich freundlich nachfragen, ob weiterhin Interesse an unserem Angebot mit der Kundennummer ${code} besteht.\nWir stehen bereit, Ihren Umzug zuverlässig und professionell umzusetzen.\n\nMit freundlichen Grüßen,\n\n\nUmzugsberater\n\n📞 WhatsApp: 015560030641\n✉️ E-Mail: info@frankfurtcheckumzug.de\n🌍 Web: www.checkumzug.de\n📠 Fax: 02343 6714070`,
+      nachverfolgen4: `Hallo ${anrede} ${n},\ndies ist meine abschließende Nachfrage zu unserem Angebot mit der Kundennummer ${code}.\nSollten Sie sich bereits entschieden haben, wäre ich Ihnen für eine kurze Rückmeldung sehr dankbar.\nNatürlich stehe ich Ihnen weiterhin jederzeit gerne zur Verfügung, falls Sie unser Angebot doch noch in Anspruch nehmen möchten.\n\nMit freundlichen Grüßen,\n\n\nUmzugsberater\n\n📞 WhatsApp: 015560030641\n✉️ E-Mail: info@frankfurtcheckumzug.de\n🌍 Web: www.checkumzug.de\n📠 Fax: 02343 6714070`,
+
+      rechnungDaten: `Ange Number\t${code}\nTermin\t${date}\nPrice\t${price}\nServices List\tUmzug Volumen von (${vol} m³) Von: ${from} Nach: ${to} • Umzugsversicherung • Ab/Anfahrt • Be- und Entladung • Bereitstellung von Luftpolsterfolie und Umzugsfolienrollen • Einrichtung eine Parkzone am Auszugsort • Aufbau von Möbeln • Einrichtung einer Parkzone am Einzugsort • Bereitstellung von Umzugskartons (x40)`,
+
+      angepassteAngebot: `Hallo ${anrede} ${n},\n\nanbei erhalten Sie das angepasste Angebot mit der Kundennummer ${code} für Ihren Umzug im PDF-Format.\n\nWir haben die Änderungen gemäß Ihrer Rückmeldung berücksichtigt, um das Angebot optimal auf Ihre Wünsche und Anforderungen abzustimmen.\n\nBitte prüfen Sie das Dokument in Ruhe. Falls noch Fragen bestehen oder weitere Anpassungen gewünscht sind, stehe ich Ihnen selbstverständlich jederzeit gerne zur Verfügung.\n\nFür Rückfragen geben Sie bitte wie gewohnt die Kundennummer ${code} an, damit wir schnell auf Ihr Anliegen reagieren können.\n\nWir freuen uns darauf, Sie bei Ihrem Umzug bestmöglich zu unterstützen.\n\nMit freundlichen Grüßen,\n\n\nUmzugsberater\n\n📞 WhatsApp: 015560030641\n✉️ E-Mail: info@frankfurtcheckumzug.de\n🌍 Web: www.checkumzug.de\n📠 Fax: 02343 6714070`,
     };
-    return t[type] || "";
+    return templates[type] || "";
   };
   const copyMessage = (type: string) => {
     navigator.clipboard.writeText(buildMessage(type));
@@ -665,7 +791,7 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
               <Field label="Umzug Termin Bis">{inp(terminBis, setTerminBis, { type: "date", placeholder: "Bis Datum" })}</Field>
               <Field label="Email">{inp(email, setEmail, { type: "email", placeholder: "email@example.com" })}</Field>
               <Field label="موعد التذكير / Erinnerungsdatum">{inp(reminderDate, setReminderDate, { type: "date", placeholder: "Optional" })}</Field>
-              <Field label="Status">{sel(status2, setStatus2, ["Angaben vollständig","Nachverfolgen","Online-besichtigungstermin","Besichtigungtermin","Absagen"])}</Field>
+              <Field label="Status">{sel(status2, setStatus2, ["Registriert auf Apex","Angebot gesendet","Bestaetigt","Abgesagt","Abgeschlossen"])}</Field>
               <Field label="Kundennummer">{inp(umzugscode, setUmzugscode, { placeholder: "00001", readOnly: true })}</Field>
               <Field label="Price Brutto (EUR)">{inp(priceBrutto, setPriceBrutto, { type: "number", placeholder: "0" })}</Field>
               <Field label="Versuch">{sel(versuch, setVersuch, ["Versuch 1","Versuch 2","Versuch 3","Versuch 4","Versuch 5","Versuch 6"])}</Field>
@@ -720,9 +846,9 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
               <Field label="Auftragsstatus">
                 {ro ? <div className="w-full border rounded px-3 py-2 text-sm bg-gray-50">{moveStatus}</div>
                     : <select className="w-full border rounded px-3 py-2 text-sm" value={moveStatus} onChange={e => setMoveStatus(e.target.value)}>
-                        <option value="pending">Ausstehend</option><option value="confirmed">Registriert Auf Apex</option>
-                        <option value="in_progress">Abgeschlossen</option>
-                        <option value="cancelled">Storniert</option>
+                        <option value="pending">Angaben vollständig</option><option value="confirmed">Nachverfolgen</option>
+                        <option value="in_progress">Online-besichtigungtermin</option><option value="completed">Besichtigungtermin</option>
+                        <option value="cancelled">Absagen</option>
                       </select>}
               </Field>
             </div>
@@ -1102,20 +1228,41 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
           </Section>
 
           <Section title="Nachrichten">
-            <p className="text-xs text-gray-500 mb-3">Klicken Sie auf eine Nachricht, um sie zu oeffnen und zu kopieren.</p>
+            <p className="text-xs text-gray-500 mb-3">
+              Klicken Sie auf eine Nachricht, um sie zu öffnen und zu kopieren. Die Daten werden automatisch aus dem Kundenformular übernommen.
+            </p>
             <div className="space-y-2">
               {[
                 { key: "willkommen", label: "Willkommen Nachricht Frankfurt" },
                 { key: "ersteNachricht", label: "Erste Nachricht Frankfurt" },
                 { key: "angebotSchicken", label: "Angebot schicken Frankfurt" },
-                { key: "angebotBestaetigt", label: "Angebot Bestaetigt Frankfurt" },
+                { key: "angebotBestaetigt", label: "Angebot Bestätigt Frankfurt" },
                 { key: "absage", label: "Absage Frankfurt" },
-                { key: "nachverfolgen", label: "Nachverfolgen" },
                 { key: "rechnungDaten", label: "Rechnung daten" },
                 { key: "angepassteAngebot", label: "Das angepasste Angebot" },
               ].map(({ key, label }) => (
-                <MessageItem key={key} label={label} message={buildMessage(key)} copied={copied === key} onCopy={() => copyMessage(key)} />
+                <MessageItem
+                  key={key}
+                  label={label}
+                  message={buildMessage(key)}
+                  copied={copied === key}
+                  onCopy={(text) => {
+                    navigator.clipboard.writeText(text);
+                    setCopied(key);
+                    setTimeout(() => setCopied(null), 2000);
+                    toast.success("Nachricht kopiert!");
+                  }}
+                />
               ))}
+
+              {/* ── Nachverfolgen group (4 messages) ── */}
+              <NachverfolgenGroup
+                keys={["nachverfolgen1", "nachverfolgen2", "nachverfolgen3", "nachverfolgen4"]}
+                labels={["Nachverfolgen 1", "Nachverfolgen 2", "Nachverfolgen 3", "Nachverfolgen 4"]}
+                buildMessage={buildMessage}
+                copied={copied}
+                setCopied={setCopied}
+              />
             </div>
           </Section>
 
