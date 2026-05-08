@@ -13,18 +13,18 @@ export default function Rechnungen() {
   const [isPaidFilter, setIsPaidFilter] = useState<"all" | "paid" | "unpaid">("all");
   const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null);
 
-  // جلب الفروع (للمدير فقط)
+  // Filialen abrufen (nur Admin)
   const branchesQuery = trpc.branches.list.useQuery(undefined, {
     enabled: !!user && user.role === 'admin',
   });
   const branches = branchesQuery.data ?? [];
 
-  // جلب الإحصائيات
+  // Statistiken abrufen
   const { data: stats, isLoading: statsLoading } = trpc.invoices.getStats.useQuery(
     user?.role === 'admin' ? { branchId: selectedBranchId } : undefined
   );
 
-  // جلب قائمة الفواتير
+  // Rechnungsliste abrufen
   const { data: invoicesList, isLoading: listLoading, refetch } = trpc.invoices.getAll.useQuery({
     search,
     isPaid: isPaidFilter,
@@ -32,7 +32,7 @@ export default function Rechnungen() {
     ...(user?.role === 'admin' ? { branchId: selectedBranchId } : {}),
   });
 
-  // إعادة توليد PDF
+  // PDF neu generieren
   const regenerateMutation = trpc.invoices.regenerate.useMutation({
     onSuccess: (data) => {
       const linkSource = `data:application/pdf;base64,${data.base64}`;
@@ -70,13 +70,13 @@ export default function Rechnungen() {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      {/* العنوان */}
+      {/* Adresse */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Rechnungen</h1>
           <p className="text-muted-foreground">Übersicht aller generierten Rechnungen</p>
         </div>
-        {/* Branch Selector للمدير */}
+        {/* Filialauswahl für Admin */}
         {user?.role === 'admin' && branches.length > 0 && (
           <Select
             value={selectedBranchId === null ? 'all' : String(selectedBranchId)}
@@ -96,7 +96,7 @@ export default function Rechnungen() {
         )}
       </div>
 
-      {/* الإحصائيات */}
+      {/* Statistiken */}
       {statsLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
@@ -156,7 +156,7 @@ export default function Rechnungen() {
         </div>
       )}
 
-      {/* البحث والتصفية */}
+      {/* Suche Filter */}
       <Card className="p-4">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
@@ -181,7 +181,7 @@ export default function Rechnungen() {
         </div>
       </Card>
 
-      {/* جدول الفواتير */}
+      {/* Rechnungstabelle */}
       <Card>
         <div className="overflow-x-auto">
           <table className="w-full">
