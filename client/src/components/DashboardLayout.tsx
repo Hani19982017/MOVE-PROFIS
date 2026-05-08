@@ -29,8 +29,8 @@ import ManagerPasswordDialog from "./ManagerPasswordDialog";
 import { Button } from "./ui/button";
 
 const ALL_MENU_ITEMS = [
-  { icon: LayoutDashboard, label: "الصفحة الرئيسية", path: "/", roles: ["admin", "branch_manager", "supervisor", "sales", "worker"] },
-  { icon: Users, label: "إدارة المستخدمين", path: "/users", roles: ["admin"] },
+  { icon: LayoutDashboard, label: "Startseite", path: "/", roles: ["admin", "branch_manager", "supervisor", "sales", "worker"] },
+  { icon: Users, label: "Benutzerverwaltung", path: "/users", roles: ["admin"] },
 ];
 
 function getMenuItemsForRole(role: string | undefined): typeof ALL_MENU_ITEMS {
@@ -68,10 +68,10 @@ export default function DashboardLayout({
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
           <div className="flex flex-col items-center gap-6">
               <h1 className="text-2xl font-semibold tracking-tight text-center text-[#1a4d6d]">
-                تسجيل الدخول مطلوب
+                Anmelden Erforderlich
               </h1>
               <p className="text-sm text-muted-foreground text-center max-w-sm">
-                للوصول إلى لوحة Umzug Profis، يرجى متابعة تسجيل الدخول بحسابك الداخلي.
+                Für den Zugriff auf das Move-Profis-Dashboard melden Sie sich bitte mit Ihrem internen Konto an.
               </p>
           </div>
           <Button
@@ -81,7 +81,7 @@ export default function DashboardLayout({
             size="lg"
             className="w-full shadow-lg hover:shadow-xl transition-all bg-[#1a4d6d] hover:bg-[#14394f] text-white"
           >
-            الانتقال إلى صفحة الدخول
+            Zur Anmeldeseite
           </Button>
         </div>
       </div>
@@ -245,7 +245,7 @@ function DashboardLayoutContent({
                   className="cursor-pointer text-destructive focus:text-destructive"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>تسجيل الخروج</span>
+                  <span>Abmelden</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -274,7 +274,7 @@ function DashboardLayoutContent({
               <div className="flex items-center gap-3">
                 <div className="flex flex-col gap-1">
                   <span className="tracking-tight text-foreground">
-                    {activeMenuItem?.label ?? "القائمة"}
+                    {activeMenuItem?.label ?? "Menü"}
                   </span>
                 </div>
               </div>
