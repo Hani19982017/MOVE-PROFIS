@@ -15,12 +15,12 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
 
-// بناء رابط خرائط Google
+// Google Maps-Link erstellen
 function buildGoogleMapsUrl(address: string): string {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 }
 
-// مكوّن عنوان قابل للنقر
+// Klickbare Adresskomponente
 function AddressLink({ address, label, colorClass, iconColorClass }: {
   address: string; label: string; colorClass: string; iconColorClass: string;
 }) {
@@ -46,7 +46,7 @@ function AddressLink({ address, label, colorClass, iconColorClass }: {
   );
 }
 
-// مكوّن قسم قابل للطي
+// Einklappbarer Bereich
 function CollapsibleSection({ title, icon, children, defaultOpen = true, accentColor = "blue" }: {
   title: string; icon: React.ReactNode; children: React.ReactNode;
   defaultOpen?: boolean; accentColor?: string;
@@ -74,7 +74,7 @@ function CollapsibleSection({ title, icon, children, defaultOpen = true, accentC
   );
 }
 
-// حقل معلومات صغير
+// Kleines Info-Feld
 function InfoField({ label, value, className = "" }: { label: string; value: string | number | null | undefined; className?: string }) {
   if (value === null || value === undefined || value === "") return null;
   return (
@@ -85,7 +85,7 @@ function InfoField({ label, value, className = "" }: { label: string; value: str
   );
 }
 
-// ضغط الصورة
+// Foto komprimieren
 async function compressImage(file: File): Promise<{ name: string; data: string }> {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -111,11 +111,11 @@ async function compressImage(file: File): Promise<{ name: string; data: string }
 
 function getStatusBadge(status: string) {
   const map: Record<string, { label: string; className: string }> = {
-    pending: { label: "قيد الانتظار", className: "bg-[#fff2e8] text-[#bd682b]" },
-    confirmed: { label: "مؤكد", className: "bg-[#eaf2f7] text-[#1a4d6d]" },
-    in_progress: { label: "قيد التنفيذ", className: "bg-[#fff2e8] text-[#bd682b]" },
-    completed: { label: "مكتمل", className: "bg-[#eaf2f7] text-[#1a4d6d]" },
-    cancelled: { label: "ملغى", className: "bg-red-100 text-red-800" },
+    pending: { label: "Ausstehend", className: "bg-[#fff2e8] text-[#bd682b]" },
+    confirmed: { label: "Bestätigt", className: "bg-[#eaf2f7] text-[#1a4d6d]" },
+    in_progress: { label: "In Bearbeitung", className: "bg-[#fff2e8] text-[#bd682b]" },
+    completed: { label: "Abgeschlossen", className: "bg-[#eaf2f7] text-[#1a4d6d]" },
+    cancelled: { label: "Storniert", className: "bg-red-100 text-red-800" },
   };
   const s = map[status] || { label: status, className: "bg-gray-100 text-gray-800" };
   return <Badge className={`${s.className} border-0 text-xs`}>{s.label}</Badge>;
@@ -128,7 +128,7 @@ function formatCents(cents: number | null | undefined): string {
 
 type ReportType = "schaden" | "beschwerde" | null;
 
-// ===== مكوّن Finanzen التفاعلي للعامل =====
+// ===== Interaktive Finanzen-Komponente für Mitarbeiter =====
 function WorkerFinanzenSection({ task, onRefetch }: { task: any; onRefetch: () => void }) {
   const [bankBetrag, setBankBetrag] = useState<string>(task?.bankBetrag ? String(task.bankBetrag / 100) : "");
   const [barBetrag, setBarBetrag] = useState<string>(task?.barBetrag ? String(task.barBetrag / 100) : "");
@@ -137,12 +137,12 @@ function WorkerFinanzenSection({ task, onRefetch }: { task: any; onRefetch: () =
   const [saving, setSaving] = useState(false);
   const updatePaymentMutation = trpc.workerMoves.updatePayment.useMutation({
     onSuccess: () => {
-      toast.success("تم حفظ بيانات الدفع بنجاح");
+      toast.success("Gespeichert Zahlungsdaten erfolgreich");
       setSaving(false);
       onRefetch();
     },
     onError: (e) => {
-      toast.error("خطأ: " + e.message);
+      toast.error("Fehler: " + e.message);
       setSaving(false);
     },
   });
@@ -173,7 +173,7 @@ function WorkerFinanzenSection({ task, onRefetch }: { task: any; onRefetch: () =
         </div>
       </button>
       <CardContent className="pt-4 pb-4 space-y-4">
-        {/* معلومات القراءة فقط */}
+        {/* Nur-Lese-Informationen */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {task.grossPrice && (
             <div className="bg-white border border-gray-100 rounded-lg p-3">
@@ -206,9 +206,9 @@ function WorkerFinanzenSection({ task, onRefetch }: { task: any; onRefetch: () =
             </div>
           )}
         </div>
-        {/* حقول الإدخال التفاعلية */}
+        {/* Interaktive Eingabefelder */}
         <div className="border-t border-orange-100 pt-4">
-          <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[#bd682b]">تسجيل الدفع</p>
+          <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[#bd682b]">Zahlung erfassen</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-gray-500 mb-1 block">Bank Betrag (€)</label>
@@ -304,63 +304,63 @@ export default function WorkerDashboard() {
     selectedBranchId ? { branchId: selectedBranchId } : undefined,
     {
       refetchInterval: 30000,
-      enabled: !showBranchSelector, // لا تحمل المهام إذا كان العامل يختار الفرع
+      enabled: !showBranchSelector, // Keine Aufgaben laden solange Mitarbeiter Filiale wählt
     }
   );
 
-  // نقل جميع الـ mutations إلى أعلى قبل أي شروط
+  // Alle Mutations nach oben verschieben vor bedingten Anweisungen
   const reportSchadenMutation = trpc.workerMoves.reportSchaden.useMutation({
     onSuccess: () => {
-      toast.success("تم حفظ تقرير التلف");
+      toast.success("Schadensbericht gespeichert");
       setReportType(null); setReportDescription(""); setReportImages([]); refetch();
     },
-    onError: (e) => toast.error("خطأ: " + e.message),
+    onError: (e) => toast.error("Fehler: " + e.message),
   });
 
   const reportBeschwerdeM = trpc.workerMoves.reportBeschwerde.useMutation({
     onSuccess: () => {
-      toast.success("تم حفظ تقرير الشكوى");
+      toast.success("Beschwerde gespeichert");
       setReportType(null); setReportDescription(""); setReportImages([]); refetch();
     },
-    onError: (e) => toast.error("خطأ: " + e.message),
+    onError: (e) => toast.error("Fehler: " + e.message),
   });
 
   const completeMutation = trpc.workerMoves.complete.useMutation({
     onSuccess: () => {
-      toast.success("تم إغلاق المهمة بنجاح");
+      toast.success("Erledigt Schließen Aufgabe erfolgreich");
       setShowCompleteConfirm(false); setSelectedTaskId(null); refetch();
     },
-    onError: (e) => toast.error("خطأ: " + e.message),
+    onError: (e) => toast.error("Fehler: " + e.message),
   });
 
   const updateTaskNotes = trpc.workerMoves.updateNotes.useMutation({
     onSuccess: () => {
-      toast.success("تم حفظ الملاحظات");
+      toast.success("Notizen gespeichert");
       refetch();
     },
-    onError: (e) => toast.error("خطأ: " + e.message),
+    onError: (e) => toast.error("Fehler: " + e.message),
   });
 
   const activeTasks = allMoves.filter(m => m.status !== 'completed' && m.status !== 'cancelled');
   const selectedTask = activeTasks.find(t => t.id === selectedTaskId) || null;
 
-  // اذا كان العامل بدون فرع مسند، يجب أن يختار الفرع أولاً
+  // Wenn Mitarbeiter ohne zugewiesene Filiale: muss Filiale zuerst wählen
   if (showBranchSelector) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center py-6">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>اختر الفرع</CardTitle>
-            <CardDescription>يجب عليك اختيار الفرع قبل عرض المهام</CardDescription>
+            <CardTitle>Auswählen Filiale</CardTitle>
+            <CardDescription>Sie müssen zuerst eine Filiale auswählen, um Aufgaben anzuzeigen</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {branchesQuery.isLoading ? (
-              <p className="text-center text-gray-500">جاري التحميل...</p>
+              <p className="text-center text-gray-500">Wird geladen...</p>
             ) : branchesQuery.data && branchesQuery.data.length > 0 ? (
               <>
                 <Select value={selectedBranchId?.toString() || ""} onValueChange={(val) => setSelectedBranchId(parseInt(val))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="اختر الفرع" />
+                    <SelectValue placeholder="Auswählen Filiale" />
                   </SelectTrigger>
                   <SelectContent>
                     {branchesQuery.data.map((branch) => (
@@ -379,11 +379,11 @@ export default function WorkerDashboard() {
                   disabled={!selectedBranchId}
                   className="w-full"
                 >
-                  متابعة
+                  Fortfahren
                 </Button>
               </>
             ) : (
-              <p className="text-center text-red-500">لا توجد فروع متاحة</p>
+              <p className="text-center text-red-500">Keine verfügbaren Filialen</p>
             )}
           </CardContent>
         </Card>
@@ -410,7 +410,7 @@ export default function WorkerDashboard() {
 
   const isSubmitting = reportSchadenMutation.isPending || reportBeschwerdeM.isPending;
 
-  // تحليل الخدمات
+  // Dienstleistungen analysieren
   const parseServices = (task: typeof selectedTask): any[] => {
     if (!task) return [];
     try {
@@ -421,7 +421,7 @@ export default function WorkerDashboard() {
     } catch { return []; }
   };
 
-  // تحليل صور Schaden
+  // Schadensfotos analysieren
   const parseSchadenImages = (task: typeof selectedTask): string[] => {
     if (!task) return [];
     try {
@@ -437,23 +437,23 @@ export default function WorkerDashboard() {
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">لوحة تحكم العامل</h1>
-            <p className="text-gray-500 mt-1 text-sm">{activeTasks.length} مهمة نشطة</p>
+            <h1 className="text-2xl font-bold text-gray-900">Mitarbeiter-Dashboard</h1>
+            <p className="text-gray-500 mt-1 text-sm">{activeTasks.length} aktive Aufgabe(n)</p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => refetch()}>تحديث</Button>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>Aktualisieren</Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* قائمة المهام */}
+          {/* Aufgabenliste */}
           <div className="lg:col-span-1">
             <Card className="shadow-lg border-0">
               <CardHeader className="border-b border-[#1a4d6d]/15 bg-gradient-to-r from-[#f4f8fb] to-[#eaf2f7] pb-3">
-                <CardTitle className="text-base text-[#1a4d6d]">المهام النشطة</CardTitle>
-                <CardDescription className="text-[#1a4d6d]/80">{activeTasks.length} مهام</CardDescription>
+                <CardTitle className="text-base text-[#1a4d6d]">Aktive Aufgaben</CardTitle>
+                <CardDescription className="text-[#1a4d6d]/80">{activeTasks.length} Aufgaben</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2 p-3 max-h-[calc(100vh-200px)] overflow-y-auto">
                 {activeTasks.length === 0 ? (
-                  <p className="text-center text-gray-500 py-8 text-sm">لا توجد مهام نشطة</p>
+                  <p className="text-center text-gray-500 py-8 text-sm">Keine aktiven Aufgaben</p>
                 ) : (
                   activeTasks.map((task) => (
                     <button
@@ -465,7 +465,7 @@ export default function WorkerDashboard() {
                           : "border-gray-200 hover:border-[#1a4d6d]/35 hover:bg-gray-50 hover:shadow-md"
                       }`}
                     >
-                      {/* رأس البطاقة: الكود والحالة */}
+                      {/* Kartenkopf: Code Status */}
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-bold text-sm text-[#1a4d6d]">{(task as any).kundenummer || task.moveCode}</span>
                         <div className="flex gap-1">
@@ -478,12 +478,12 @@ export default function WorkerDashboard() {
                         </div>
                       </div>
 
-                      {/* اسم العميل */}
+                      {/* Name Kunde */}
                       <div className="text-sm font-semibold text-gray-800 mb-2 truncate">
                         {(task as any).customerName || "—"}
                       </div>
 
-                      {/* العناوين المختصرة */}
+                      {/* Kurzadressen */}
                       <div className="space-y-1 mb-2">
                         <div className="text-xs text-gray-600 truncate flex items-center gap-1">
                           <span className="font-bold text-[#1a4d6d]">📤</span>
@@ -495,7 +495,7 @@ export default function WorkerDashboard() {
                         </div>
                       </div>
 
-                      {/* معلومات إضافية */}
+                      {/* Weitere Informationen */}
                       <div className="grid grid-cols-2 gap-1 mb-2 text-xs">
                         <div className="bg-gray-100 px-2 py-1 rounded">
                           <span className="text-gray-600">📅</span>
@@ -523,15 +523,15 @@ export default function WorkerDashboard() {
                         )}
                       </div>
 
-                      {/* ملاحظات المهمة */}
+                      {/* Notizen Aufgabe */}
                       {(task as any).taskNotes && (
                         <div className="mb-2 p-2 bg-amber-50 border border-amber-200 rounded">
-                          <p className="text-xs text-amber-700 font-medium mb-1">🗒 ملاحظات:</p>
+                          <p className="text-xs text-amber-700 font-medium mb-1">🗒 Notizen:</p>
                           <p className="text-xs text-amber-800 line-clamp-2">{(task as any).taskNotes}</p>
                         </div>
                       )}
 
-                      {/* مؤشرات التلف والشكوى */}
+                      {/* Schadens- Beschwerdeindikatoren */}
                       <div className="flex gap-1 flex-wrap">
                         {(task as any).schadenDescription && (
                           <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-medium">⚠ Schaden</span>
@@ -547,27 +547,27 @@ export default function WorkerDashboard() {
             </Card>
           </div>
 
-          {/* تفاصيل المهمة */}
+          {/* Aufgabendetails */}
           <div className="lg:col-span-2">
             {selectedTask ? (
               <div className="space-y-4">
 
-                {/* ===== بيانات العميل الأساسية ===== */}
+                {/* ===== Grundlegende Kundendaten ===== */}
                 <CollapsibleSection
-                  title={`بيانات المهمة — ${(selectedTask as any).kundenummer || selectedTask.moveCode}`}
+                  title={`Daten Aufgabe — ${(selectedTask as any).kundenummer || selectedTask.moveCode}`}
                   icon={<Package className="w-4 h-4 text-[#1a4d6d]" />}
                   accentColor="blue"
                 >
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    <InfoField label="اسم العميل" value={(selectedTask as any).customerName} />
-                    <InfoField label="الهاتف" value={(selectedTask as any).customerPhone} />
-                    <InfoField label="البريد الإلكتروني" value={(selectedTask as any).customerEmail} />
+                    <InfoField label="Name Kunde" value={(selectedTask as any).customerName} />
+                    <InfoField label="Telefon" value={(selectedTask as any).customerPhone} />
+                    <InfoField label="E-Mail" value={(selectedTask as any).customerEmail} />
                     <InfoField label="Filiale" value={(selectedTask as any).customerSitz} />
                     <InfoField label="Type" value={selectedTask.moveType} />
                     <InfoField label="Distanz (km)" value={selectedTask.distance ? `${selectedTask.distance} km` : null} />
                     <InfoField label="m³ (Volumen)" value={selectedTask.volume ? `${selectedTask.volume} m³` : null} />
-                    <InfoField label="تاريخ النقل" value={selectedTask.pickupDate ? new Date(selectedTask.pickupDate).toLocaleDateString("de-DE") : null} />
-                    <InfoField label="تاريخ التسليم" value={selectedTask.deliveryDate ? new Date(selectedTask.deliveryDate).toLocaleDateString("de-DE") : null} />
+                    <InfoField label="Umzugsdatum" value={selectedTask.pickupDate ? new Date(selectedTask.pickupDate).toLocaleDateString("de-DE") : null} />
+                    <InfoField label="Lieferdatum" value={selectedTask.deliveryDate ? new Date(selectedTask.deliveryDate).toLocaleDateString("de-DE") : null} />
                   </div>
                   <div className="flex items-center gap-2 mt-3 flex-wrap">
                     {getStatusBadge(selectedTask.status)}
@@ -700,7 +700,7 @@ export default function WorkerDashboard() {
                     if (yesNo(sj.endreinigung)) rows.push(<SRow key="er" label="Endreinigung" value="Ja" />);
                     if (pickYesNo('bohrDuebel', 'bohrarbeit')) {
                       const p = pickValue('bohrPunkt', 'bohrarbeitPunkt');
-                      rows.push(<SRow key="bd" label="Bohr- und Dübelarbeit" value={p ? String(p) : 'Ja'} />);
+                      rows.push(<SRow key="bd" label="Bohr- Dübelarbeit" value={p ? String(p) : 'Ja'} />);
                     }
                     if (pickYesNo('entsorgungMoebel', 'entsorgung')) {
                       rows.push(<SRow key="en" label="Entsorgung von Möbeln" value={[sj.entsorgungType, sj.entsorgungM3 ? sj.entsorgungM3 + ' m³' : ''].filter(Boolean).join(' — ') || 'Ja'} />);
@@ -720,7 +720,7 @@ export default function WorkerDashboard() {
                     }
                     return (
                       <div className="space-y-2">
-                        {rows.length > 0 ? rows : <p className="text-sm text-gray-400 text-center py-2">لا توجد خدمات إضافية مسجّلة</p>}
+                        {rows.length > 0 ? rows : <p className="text-sm text-gray-400 text-center py-2">Keine zusätzlichen Dienstleistungen erfasst</p>}
                         {(selectedTask as any).anmerkungen && (
                           <div className="bg-gray-50 rounded-lg p-3 mt-1">
                             <p className="text-xs text-gray-500 mb-1 font-semibold">Anmerkungen</p>
@@ -744,7 +744,7 @@ export default function WorkerDashboard() {
                   })()}
                 </CollapsibleSection>
 
-                {/* ===== Finanzen (تفاعلي) ===== */}
+                {/* ===== Finanzen (interaktiv) ===== */}
                 <WorkerFinanzenSection task={selectedTask} onRefetch={refetch} />
 
                                 {/* ===== Photos and Docs ===== */}
@@ -756,7 +756,7 @@ export default function WorkerDashboard() {
                 >
                   <div className="mb-3 rounded-lg border border-[#1a4d6d]/15 bg-[#eaf2f7] p-3">
                     <p className="text-xs font-medium text-[#1a4d6d]">
-                      ℹ️ Diese Fotos wurden vom Vertriebsteam hochgeladen und zeigen das vereinbarte Inventar des Kunden.
+                      ℹ️ Diese Fotos wurden vom Vertriebsteam hochgeladen zeigen das vereinbarte Inventar des Kunden.
                     </p>
                   </div>
                   {(selectedTask as any).customerPhotos && (selectedTask as any).customerPhotos.length > 0 ? (
@@ -785,20 +785,20 @@ export default function WorkerDashboard() {
                   )}
                 </CollapsibleSection>
 
-                {/* ===== تقارير الحالة ===== */}
+                {/* ===== Status-Berichte ===== */}
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base flex items-center gap-2">
                       <AlertTriangle className="w-4 h-4 text-red-500" />
-                      تقارير الحالة
+                      Status-Berichte
                     </CardTitle>
-                    <CardDescription>في حال وجود تلف أو شكوى أثناء العمل</CardDescription>
+                    <CardDescription>Bei Schäden oder Beschwerden während der Arbeit</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {(selectedTask as any).schadenDescription && (
                       <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                         <p className="text-sm font-semibold text-red-700 flex items-center gap-2">
-                          <AlertTriangle className="w-4 h-4" /> تقرير تلف مسجّل
+                          <AlertTriangle className="w-4 h-4" /> Schadensbericht vorhanden
                         </p>
                         <p className="text-sm text-red-600 mt-1">{(selectedTask as any).schadenDescription}</p>
                         {parseSchadenImages(selectedTask).length > 0 && (
@@ -815,7 +815,7 @@ export default function WorkerDashboard() {
                     {(selectedTask as any).beschwerdeDescription && (
                       <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
                         <p className="text-sm font-semibold text-orange-700 flex items-center gap-2">
-                          <MessageSquareWarning className="w-4 h-4" /> شكوى مسجّلة
+                          <MessageSquareWarning className="w-4 h-4" /> Beschwerde vorhanden
                         </p>
                         <p className="text-sm text-orange-600 mt-1">{(selectedTask as any).beschwerdeDescription}</p>
                       </div>
@@ -828,14 +828,14 @@ export default function WorkerDashboard() {
                           className="flex-1 border-red-200 text-red-700 hover:bg-red-50"
                           onClick={() => setReportType("schaden")}
                         >
-                          <AlertTriangle className="w-4 h-4 mr-1" /> تقرير تلف
+                          <AlertTriangle className="w-4 h-4 mr-1" /> Schadensbericht
                         </Button>
                         <Button
                           variant="outline" size="sm"
                           className="flex-1 border-orange-200 text-orange-700 hover:bg-orange-50"
                           onClick={() => setReportType("beschwerde")}
                         >
-                          <MessageSquareWarning className="w-4 h-4 mr-1" /> تقرير شكوى
+                          <MessageSquareWarning className="w-4 h-4 mr-1" /> Beschwerde
                         </Button>
                       </div>
                     )}
@@ -844,14 +844,14 @@ export default function WorkerDashboard() {
                       <div className="space-y-3 border rounded-lg p-3 bg-gray-50">
                         <div className="flex items-center justify-between">
                           <h4 className="font-bold text-sm">
-                            {reportType === "schaden" ? "🔴 تقرير تلف (Schaden)" : "🟠 تقرير شكوى (Beschwerde)"}
+                            {reportType === "schaden" ? "🔴 Schadensbericht" : "🟠 Beschwerde"}
                           </h4>
                           <button onClick={() => { setReportType(null); setReportDescription(""); setReportImages([]); }}>
                             <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
                           </button>
                         </div>
                         <Textarea
-                          placeholder="اكتب وصف التلف أو الشكوى بالتفصيل..."
+                          placeholder="Beschreiben Sie den Schaden oder die Beschwerde detailliert..."
                           value={reportDescription}
                           onChange={e => setReportDescription(e.target.value)}
                           rows={3}
@@ -859,7 +859,7 @@ export default function WorkerDashboard() {
                         <div>
                           <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleImageSelect} />
                           <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                            <Upload className="w-4 h-4 mr-2" /> إرفاق صور
+                            <Upload className="w-4 h-4 mr-2" /> Fotos anhängen
                           </Button>
                           {reportImages.length > 0 && (
                             <div className="flex gap-2 mt-2 flex-wrap">
@@ -876,7 +876,7 @@ export default function WorkerDashboard() {
                           )}
                         </div>
                         <Button className="w-full" disabled={!reportDescription.trim() || isSubmitting} onClick={handleSubmitReport}>
-                          {isSubmitting ? "جاري الحفظ..." : "حفظ التقرير"}
+                          {isSubmitting ? "Wird gespeichert..." : "Bericht speichern"}
                         </Button>
                       </div>
                     )}
@@ -896,7 +896,7 @@ export default function WorkerDashboard() {
                   {showNoteSection && (
                     <div className="p-4 bg-white">
                       <Textarea
-                        placeholder="اكتب ملاحظة أو تعليق مهم..."
+                        placeholder="Notiz oder wichtigen Kommentar eingeben..."
                         value={selectedTask?.taskNotes || ""}
                         onChange={(_e) => {
                           // notes are saved via updateTaskNotes mutation directly
@@ -916,17 +916,17 @@ export default function WorkerDashboard() {
                         }}
                         disabled={updateTaskNotes.isPending}
                       >
-                        {updateTaskNotes.isPending ? "جاري..." : "حفظ"}
+                        {updateTaskNotes.isPending ? "Wird gespeichert..." : "Speichern"}
                       </Button>
                     </div>
                   )}
                 </div>
 
-                {/* ===== إنجاز المهمة ===== */}
+                {/* ===== Aufgabe abschließen ===== */}
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base">إنجاز المهمة</CardTitle>
-                    <CardDescription>عند الانتهاء من النقل بالكامل اضغط زر الإنجاز</CardDescription>
+                    <CardTitle className="text-base">Aufgabe abschließen</CardTitle>
+                    <CardDescription>Wenn der Umzug vollständig abgeschlossen ist, drücken Sie die Abschluss-Taste</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Button
@@ -934,7 +934,7 @@ export default function WorkerDashboard() {
                       onClick={() => setShowCompleteConfirm(true)}
                     >
                       <CheckCircle2 className="w-5 h-5 mr-2" />
-                      ✅ تم الإنجاز — إغلاق المهمة
+                      ✅ Aufgabe abschließen
                     </Button>
                   </CardContent>
                 </Card>
@@ -944,8 +944,8 @@ export default function WorkerDashboard() {
               <Card>
                 <CardContent className="py-16 text-center">
                   <Truck className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 font-medium">اختر مهمة من القائمة لعرض التفاصيل</p>
-                  <p className="text-gray-400 text-sm mt-1">ستظهر هنا جميع معلومات العميل والموقع والخدمات</p>
+                  <p className="text-gray-500 font-medium">Aufgabe aus dem Menü auswählen, um Details anzuzeigen</p>
+                  <p className="text-gray-400 text-sm mt-1">Hier werden alle Kundendaten, Adressen Dienstleistungen angezeigt</p>
                 </CardContent>
               </Card>
             )}
@@ -957,20 +957,20 @@ export default function WorkerDashboard() {
       <Dialog open={showCompleteConfirm} onOpenChange={setShowCompleteConfirm}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>تأكيد إنجاز المهمة</DialogTitle>
+            <DialogTitle>Bestätigen Aufgabe abschließen</DialogTitle>
           </DialogHeader>
           <p className="text-gray-600">
-            هل أنت متأكد من إنجاز مهمة <strong>{(selectedTask as any)?.kundenummer || selectedTask?.moveCode}</strong>؟
-            سيتم أرشفتها وإظهارها كمهمة مكتملة في لوحة المدير.
+            ? Möchten Sie die Aufgabe <strong>{(selectedTask as any)?.kundenummer || selectedTask?.moveCode}</strong>?
+            Sie wird archiviert im Administrator-Dashboard als abgeschlossen angezeigt.
           </p>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCompleteConfirm(false)}>إلغاء</Button>
+            <Button variant="outline" onClick={() => setShowCompleteConfirm(false)}>Abbrechen</Button>
             <Button
               className="bg-[#d97e3a] text-white hover:bg-[#bd682b]"
               disabled={completeMutation.isPending}
               onClick={() => selectedTask && completeMutation.mutate({ moveId: selectedTask.id })}
             >
-              {completeMutation.isPending ? "جاري الحفظ..." : "نعم، تم الإنجاز"}
+              {completeMutation.isPending ? "Wird gespeichert..." : "Ja, Aufgabe abschließen"}
             </Button>
           </DialogFooter>
         </DialogContent>
