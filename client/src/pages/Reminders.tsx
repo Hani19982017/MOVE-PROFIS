@@ -83,20 +83,20 @@ export default function Reminders() {
 
   const updateReminder = trpc.reminders.update.useMutation({
     onSuccess: () => {
-      toast.success("✓ تم حفظ التذكير");
+      toast.success("✓ Erledigt Speichern Erinnerung");
       utils.reminders.list.invalidate();
       setEditing(null);
     },
-    onError: (e) => toast.error(`خطأ: ${e.message}`),
+    onError: (e) => toast.error(`Fehler: ${e.message}`),
   });
 
   const clearReminder = trpc.reminders.clear.useMutation({
     onSuccess: () => {
-      toast.success("✓ تم إلغاء التذكير");
+      toast.success("✓ Erledigt Abbrechen Erinnerung");
       utils.reminders.list.invalidate();
       setEditing(null);
     },
-    onError: (e) => toast.error(`خطأ: ${e.message}`),
+    onError: (e) => toast.error(`Fehler: ${e.message}`),
   });
 
   if (!isAllowed) {
@@ -104,9 +104,9 @@ export default function Reminders() {
       <DashboardLayout>
         <div className="max-w-md mx-auto mt-12 p-8 bg-white rounded-2xl shadow text-center">
           <AlertCircle className="mx-auto h-10 w-10 text-red-500 mb-3" />
-          <h2 className="text-lg font-bold mb-1">ليس لديك صلاحية</h2>
+          <h2 className="text-lg font-bold mb-1">Sie haben keine Berechtigung</h2>
           <p className="text-sm text-gray-600">
-            هذا القسم متاح فقط لمدير النظام وفريق المبيعات.
+            Dieser Bereich ist nur für Systemadministratoren Vertriebsteam zugänglich.
           </p>
         </div>
       </DashboardLayout>
@@ -132,7 +132,7 @@ export default function Reminders() {
 
   const handleClear = () => {
     if (!editing) return;
-    if (!confirm("هل أنت متأكد من إلغاء التذكير؟ سيختفي العميل من القائمة.")) {
+    if (!confirm("Möchten Sie die Erinnerung wirklich abbrechen? Der Kunde verschwindet aus dem Menü.")) {
       return;
     }
     clearReminder.mutate({ id: editing.id });
@@ -146,10 +146,10 @@ export default function Reminders() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <Bell className="h-6 w-6 text-emerald-600" />
-              تذكير المراسلة والحالة
+              Nachrichten- Status-Erinnerungen
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              العملاء الذين يحتاجون متابعة اليوم
+              Kunden, die heute eine Folgemaßnahme benötigen
             </p>
           </div>
           <Button
@@ -158,7 +158,7 @@ export default function Reminders() {
             onClick={() => remindersQuery.refetch()}
             className="flex items-center gap-1"
           >
-            <RefreshCw size={14} /> تحديث
+            <RefreshCw size={14} /> Aktualisieren
           </Button>
         </div>
 
@@ -166,7 +166,7 @@ export default function Reminders() {
         {remindersQuery.isLoading && (
           <Card>
             <CardContent className="py-8 text-center text-gray-500">
-              جاري التحميل...
+              Wird geladen...
             </CardContent>
           </Card>
         )}
@@ -176,9 +176,9 @@ export default function Reminders() {
           <Card>
             <CardContent className="py-12 text-center">
               <Bell className="mx-auto h-10 w-10 text-gray-300 mb-3" />
-              <p className="text-gray-500">لا توجد تذكيرات اليوم</p>
+              <p className="text-gray-500">Keine Erinnerungen Heute</p>
               <p className="text-xs text-gray-400 mt-1">
-                التذكيرات تظهر هنا تلقائياً عندما يحين موعدها
+                Erinnerungen erscheinen automatisch zum jeweiligen Termin
               </p>
             </CardContent>
           </Card>
@@ -189,15 +189,15 @@ export default function Reminders() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center justify-between">
-                <span>قائمة التذكيرات المستحقة</span>
+                <span>Liste fälliger Erinnerungen</span>
                 <Badge
                   variant="outline"
                   className="bg-emerald-50 text-emerald-700 border-emerald-200"
                 >
-                  {reminders.length} تذكير
+                  {reminders.length} Erinnerung(en)
                 </Badge>
               </CardTitle>
-              <CardDescription>اضغط على أي عميل لتعديل التذكير</CardDescription>
+              <CardDescription>Klicken Sie auf einen Kunden, um die Erinnerung zu bearbeiten</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y">
@@ -210,7 +210,7 @@ export default function Reminders() {
                     {/* Always green — every visible item is "due" */}
                     <span
                       className="h-3 w-3 rounded-full bg-emerald-500 ring-4 ring-emerald-200 shrink-0"
-                      aria-label="تذكير مستحق"
+                      aria-label="Fällige Erinnerung"
                     />
 
                     <div className="flex-1 min-w-0">
@@ -224,7 +224,7 @@ export default function Reminders() {
                             {r.versuch}
                           </Badge>
                         )}
-                        <span>التذكير: {formatGermanDate(r.reminderDate)}</span>
+                        <span>Erinnerung: {formatGermanDate(r.reminderDate)}</span>
                       </div>
                     </div>
 
@@ -241,7 +241,7 @@ export default function Reminders() {
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>إدارة التذكير</DialogTitle>
+            <DialogTitle>Verwaltung Erinnerung</DialogTitle>
             <DialogDescription>
               {editing && (
                 <>
@@ -256,7 +256,7 @@ export default function Reminders() {
 
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="reminderDate">موعد التذكير القادم</Label>
+              <Label htmlFor="reminderDate">Nächstes Erinnerungsdatum</Label>
               <Input
                 id="reminderDate"
                 type="date"
@@ -264,12 +264,12 @@ export default function Reminders() {
                 onChange={(e) => setEditDate(e.target.value)}
               />
               <p className="text-xs text-gray-500">
-                اترك الحقل فارغاً واحفظ لإلغاء التذكير
+                Feld leer lassen speichern, um die Erinnerung abzubrechen
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="versuch">رقم المحاولة (1 - 6)</Label>
+              <Label htmlFor="versuch">Versuch-Nummer (1 - 6)</Label>
               <select
                 id="versuch"
                 value={editVersuch}
@@ -284,7 +284,7 @@ export default function Reminders() {
               </select>
               {editVersuch === "Versuch 6" && (
                 <p className="text-xs text-orange-600 flex items-center gap-1">
-                  <AlertCircle className="h-3 w-3" /> هذه هي المحاولة الأخيرة
+                  <AlertCircle className="h-3 w-3" /> Das ist der letzte Versuch
                 </p>
               )}
             </div>
@@ -297,7 +297,7 @@ export default function Reminders() {
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
               <Save className="h-4 w-4 ml-1" />
-              {updateReminder.isPending ? "جاري الحفظ..." : "حفظ"}
+              {updateReminder.isPending ? "Wird gespeichert..." : "Speichern"}
             </Button>
             <Button
               variant="outline"
@@ -306,10 +306,10 @@ export default function Reminders() {
               className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
             >
               <Trash2 className="h-4 w-4 ml-1" />
-              إلغاء التذكير
+              Abbrechen Erinnerung
             </Button>
             <Button variant="ghost" onClick={() => setEditing(null)}>
-              إغلاق
+              Schließen
             </Button>
           </DialogFooter>
         </DialogContent>
