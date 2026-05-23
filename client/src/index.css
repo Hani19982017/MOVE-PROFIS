@@ -79,6 +79,7 @@
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.623 0.214 259.815);
   --container-5xl : 74rem !important;
+  --container-lg : 38rem !important;
 }
 
 td, th
