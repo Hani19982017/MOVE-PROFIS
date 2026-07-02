@@ -11,7 +11,7 @@ import { getDb } from "./db";
 import { generateInvoiceHTML, InvoiceData } from "./invoiceTemplate";
 import { generatePDF } from "./pdfGenerator";
 import { moves, users, customers, moveImages, messageTemplates, branches, invoices, tasks, customerReminders } from "../drizzle/schema";
-import { and, desc, like, or, sql, eq, ne } from "drizzle-orm";
+import { and, desc, like, or, sql, eq, ne, inArray } from "drizzle-orm";
 import { z } from "zod";
 import {
   changeManagerPassword,
@@ -178,9 +178,22 @@ export const appRouter = router({
           deliveryDate: m.deliveryDate,
         }));
         console.log("[moves.list] last 3 moves:", JSON.stringify(sample));
+        // Kundennamen laden, damit die Suche im Frontend nach Name funktioniert
+        const customerIds = [...new Set(allMoves.map(m => m.customerId).filter((id): id is number => id != null))];
+        const customerNameMap: Record<number, string> = {};
+        if (customerIds.length > 0) {
+          const custRows = await db
+            .select({ id: customers.id, firstName: customers.firstName, lastName: customers.lastName })
+            .from(customers)
+            .where(inArray(customers.id, customerIds));
+          for (const c of custRows) {
+            customerNameMap[c.id] = [c.firstName, c.lastName].filter(Boolean).join(" ").trim();
+          }
+        }
         return allMoves.map(m => ({
           ...m,
           kundenummer: formatCustomerNumber(m.customerId),
+          customerName: m.customerId ? (customerNameMap[m.customerId] || null) : null,
           customerPhotoCount: photoCountMap[m.id] || 0,
         }));
       } catch (e) {
@@ -209,6 +222,7 @@ export const appRouter = router({
         paymentStatus: z.enum(["unpaid", "partial", "paid"]).optional(),
         moveType: z.string().optional(),
         services: z.string().optional(),
+        branchId: z.number().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const allowedRoles = ["admin", "sales", "supervisor"]; // branch_manager is read-only
@@ -247,6 +261,7 @@ export const appRouter = router({
         if (data.paymentStatus !== undefined) updateData.paymentStatus = data.paymentStatus;
         if (data.moveType !== undefined) updateData.moveType = data.moveType;
         if (data.services !== undefined) updateData.services = data.services;
+        if (data.branchId !== undefined) updateData.branchId = data.branchId;
         try {
           await db.update(moves).set(updateData).where(eq(moves.id, moveId));
           return { success: true };
@@ -577,6 +592,23 @@ export const appRouter = router({
           if (input.company !== undefined) customerUpdate.company = input.company;
 
           if (input.sitz !== undefined) customerUpdate.sitz = input.sitz;
+          // When the Filiale (branch) is changed, `sitz` carries the branch NAME.
+          // Resolve it to a real branchId and move the order + customer to that
+          // branch, so branch isolation/filtering reflects the change. Without
+          // this, the dropdown change is silently lost (only the legacy `sitz`
+          // string was stored, which filtering does not use).
+          let resolvedBranchId: number | null = null;
+          if (input.sitz !== undefined && input.sitz !== null && input.sitz !== "") {
+            const [matchedBranch] = await db
+              .select({ id: branches.id })
+              .from(branches)
+              .where(eq(branches.name, input.sitz))
+              .limit(1);
+            if (matchedBranch) {
+              resolvedBranchId = matchedBranch.id;
+              customerUpdate.branchId = matchedBranch.id;
+            }
+          }
           if (input.status2 !== undefined) customerUpdate.status2 = input.status2;
           if (input.versuch !== undefined) customerUpdate.versuch = input.versuch;
           if (input.callCheck !== undefined) customerUpdate.callCheck = input.callCheck;
@@ -623,6 +655,8 @@ export const appRouter = router({
           // Aktualisieren Auftragsdaten
           const moveUpdate: Record<string, unknown> = {};
           moveUpdate.moveCode = formatCustomerNumber(existingMove.customerId);
+          // Move the order itself to the newly selected branch (see note above).
+          if (resolvedBranchId !== null) moveUpdate.branchId = resolvedBranchId;
           if (input.moveType !== undefined) moveUpdate.moveType = input.moveType;
           if (input.status !== undefined) moveUpdate.status = input.status;
           if (input.paymentStatus !== undefined) moveUpdate.paymentStatus = input.paymentStatus;
