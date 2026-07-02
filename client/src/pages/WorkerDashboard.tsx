@@ -190,13 +190,13 @@ function WorkerFinanzenSection({ task, onRefetch }: { task: any; onRefetch: () =
           {task.anzahlung ? (
             <div className="bg-white border border-gray-100 rounded-lg p-3">
               <p className="text-xs text-gray-500 mb-1">Anzahlung</p>
-              <p className="font-semibold text-gray-800 text-sm">{(task.anzahlung / 100).toLocaleString("de-DE", { minimumFractionDigits: 2 })} €</p>
+              <p className="font-semibold text-gray-800 text-sm">{Number(task.anzahlung).toLocaleString("de-DE", { minimumFractionDigits: 2 })} €</p>
             </div>
           ) : null}
           {task.restbetrag ? (
             <div className="bg-white border border-gray-100 rounded-lg p-3">
               <p className="text-xs text-gray-500 mb-1">Restbetrag</p>
-              <p className="font-bold text-orange-700 text-sm">{(task.restbetrag / 100).toLocaleString("de-DE", { minimumFractionDigits: 2 })} €</p>
+              <p className="font-bold text-orange-700 text-sm">{Number(task.restbetrag).toLocaleString("de-DE", { minimumFractionDigits: 2 })} €</p>
             </div>
           ) : null}
           {task.rechnungNummer && (
