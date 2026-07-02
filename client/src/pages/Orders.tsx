@@ -397,10 +397,13 @@ export default function Orders() {
 
   // Filter
   const filtered = moves.filter((m: any) => {
-    const q = searchTerm.toLowerCase();
+    const q = searchTerm.toLowerCase().trim();
     const kundenummer = formatCustomerNumber(m.customerId)?.toLowerCase();
+    const customerName = (m.customerName || "").toLowerCase();
     const matchSearch =
+      !q ||
       kundenummer?.includes(q) ||
+      customerName.includes(q) ||
       m.pickupAddress?.toLowerCase().includes(q) ||
       m.deliveryAddress?.toLowerCase().includes(q);
     const matchStatus = statusFilter === "all" || m.status === statusFilter;
@@ -492,7 +495,7 @@ export default function Orders() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
             <Input
-              placeholder="Suche nach Kundennummer oder Adresse..."
+              placeholder="Suche nach Kundennummer oder Kundenname..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 h-9 text-sm"
