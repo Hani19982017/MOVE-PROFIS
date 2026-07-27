@@ -408,7 +408,7 @@ export default function Orders() {
       m.deliveryAddress?.toLowerCase().includes(q);
     const matchStatus = statusFilter === "all" || m.status === statusFilter;
     return matchSearch && matchStatus;
-  });
+  }).sort((a: any, b: any) => (b.customerId ?? b.id ?? 0) - (a.customerId ?? a.id ?? 0));
 
   // Statistiken
   const total = moves.length;
