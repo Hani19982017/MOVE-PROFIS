@@ -326,7 +326,10 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
       setInvoiceSaveMode(false);
     }
   };
-  const { data, isLoading, error } = trpc.moves.getById.useQuery({ id: moveId });
+  const { data, isLoading, error } = trpc.moves.getById.useQuery(
+    { id: moveId },
+    { refetchOnWindowFocus: false, refetchOnReconnect: false, staleTime: Infinity }
+  );
 
   const [anrede, setAnrede] = useState("Herr");
   const [name, setName] = useState("");
@@ -458,8 +461,17 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
   const [auditRechnungBetrag, setAuditRechnungBetrag] = useState("");
   const [auditRechnungNummer, setAuditRechnungNummer] = useState("");
 
+  const populatedForMoveIdRef = useRef<number | null>(null);
+
   useEffect(() => {
     if (!data) return;
+    // Only populate the form fields the first time data for THIS order
+    // arrives. Without this guard, any background refetch of moves.getById
+    // (window refocus, another invalidation, etc.) would re-run this effect
+    // and silently overwrite every field the user has already edited but
+    // not yet saved — leaving only their most recent keystroke intact.
+    if (populatedForMoveIdRef.current === moveId) return;
+    populatedForMoveIdRef.current = moveId;
     const { customer, move, images, reminder } = data as any;
     // Load the customer reminder date (from the separate customerReminders table)
     if (reminder?.reminderDate) {
