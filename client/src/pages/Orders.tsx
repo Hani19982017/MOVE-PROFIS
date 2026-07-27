@@ -561,12 +561,7 @@ export default function Orders() {
                     <thead className="bg-gray-50 border-b">
                       <tr>
                         <th className="px-4 py-2.5 text-right font-semibold text-gray-600">Kundennummer</th>
-                        <th className="px-4 py-2.5 text-right font-semibold text-gray-600">
-                          <span className="flex items-center gap-1"><MapPin size={13} /> Von</span>
-                        </th>
-                        <th className="px-4 py-2.5 text-right font-semibold text-gray-600">
-                          <span className="flex items-center gap-1"><MapPin size={13} /> Nach</span>
-                        </th>
+                        <th className="px-4 py-2.5 text-right font-semibold text-gray-600">Name</th>
                         <th className="px-4 py-2.5 text-right font-semibold text-gray-600">
                           <span className="flex items-center gap-1"><Calendar size={13} /> Datum</span>
                         </th>
@@ -586,13 +581,8 @@ export default function Orders() {
                         <tr key={move.id} className={`border-b transition-colors ${move.istBezahlt ? 'border-green-200 bg-green-50 hover:bg-green-100/60' : 'hover:bg-gray-50'}`}>
                           <td className="px-4 py-3 font-semibold text-[#1a4d6d]">{formatCustomerNumber(move.customerId) || move.moveCode || "—"}</td>
                           <td className="px-4 py-3 text-gray-600 max-w-[160px]">
-                            <span className="block truncate" title={move.pickupAddress}>
-                              {move.pickupAddress || "—"}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-gray-600 max-w-[160px]">
-                            <span className="block truncate" title={move.deliveryAddress}>
-                              {move.deliveryAddress || "—"}
+                            <span className="block truncate" title={move.customerName}>
+                              {move.customerName || "—"}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
