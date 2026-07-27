@@ -1248,11 +1248,11 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
             </p>
             <div className="space-y-2">
               {[
-                { key: "willkommen", label: "Willkommen Nachricht Frankfurt" },
-                { key: "ersteNachricht", label: "Erste Nachricht Frankfurt" },
-                { key: "angebotSchicken", label: "Angebot schicken Frankfurt" },
-                { key: "angebotBestaetigt", label: "Angebot Bestätigt Frankfurt" },
-                { key: "absage", label: "Absage Frankfurt" },
+                { key: "willkommen", label: "Willkommen Nachricht" },
+                { key: "ersteNachricht", label: "Erste Nachricht" },
+                { key: "angebotSchicken", label: "Angebot schicken" },
+                { key: "angebotBestaetigt", label: "Angebot Bestätigt" },
+                { key: "absage", label: "Absage" },
                 { key: "rechnungDaten", label: "Rechnung daten" },
                 { key: "angepassteAngebot", label: "Das angepasste Angebot" },
               ].map(({ key, label }) => (
