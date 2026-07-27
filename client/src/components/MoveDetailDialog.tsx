@@ -201,6 +201,7 @@ interface Props { moveId: number; mode: "view" | "edit"; onClose: () => void; on
 
 export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Props) {
   const ro = mode === "view";
+  const utils = trpc.useUtils();
   const [copied, setCopied] = useState<string | null>(null);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const generateInvoice = trpc.moves.generateInvoice.useMutation();
@@ -654,6 +655,12 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
   const [invoiceSaveMode, setInvoiceSaveMode] = useState(false);
   const updateMove = trpc.moves.fullUpdate.useMutation({
     onSuccess: () => {
+      // Refresh the order list and this order's own cached data so the
+      // update shows up immediately — without this, the getById cache for
+      // this moveId stays stale and re-opening "Bearbeiten" would show the
+      // pre-save values until a full page reload re-created the query client.
+      utils.moves.list.invalidate();
+      utils.moves.getById.invalidate({ id: moveId });
       if (!invoiceSaveMode) {
         toast.success("Gespeichert!"); onSaved?.(); onClose();
       }
