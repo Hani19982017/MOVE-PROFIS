@@ -341,7 +341,13 @@ export default function WorkerDashboard() {
     onError: (e) => toast.error("Fehler: " + e.message),
   });
 
-  const activeTasks = allMoves.filter(m => m.status !== 'completed' && m.status !== 'cancelled');
+  const activeTasks = allMoves
+    .filter(m => m.status !== 'completed' && m.status !== 'cancelled')
+    .sort((a, b) => {
+      const da = a.pickupDate ? new Date(a.pickupDate).getTime() : Infinity;
+      const db = b.pickupDate ? new Date(b.pickupDate).getTime() : Infinity;
+      return da - db;
+    });
   const selectedTask = activeTasks.find(t => t.id === selectedTaskId) || null;
 
   // Wenn Mitarbeiter ohne zugewiesene Filiale: muss Filiale zuerst wählen
