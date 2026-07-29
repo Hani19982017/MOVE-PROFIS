@@ -25,6 +25,7 @@ type DayEvent = {
   done: boolean;
   umzugskartons?: string;
   kleiderkartons?: string;
+  note: string;
 };
 
 const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
@@ -57,6 +58,18 @@ export default function KartonsParkzone() {
 
   const movesQuery = trpc.moves.list.useQuery();
   const moves = (movesQuery.data ?? []) as any[];
+  const utils = trpc.useUtils();
+
+  const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
+
+  const saveNote = trpc.moves.updateServiceNote.useMutation({
+    onSuccess: () => {
+      utils.moves.list.invalidate();
+    },
+  });
+
+  const noteKey = (moveId: number, kind: "karton" | "parkzone") =>
+    `${moveId}-${kind === "karton" ? "kartonNotiz" : "parkzoneNotiz"}`;
 
   // Build a map of dateKey -> events, parsed once per fetch.
   const eventsByDay = useMemo(() => {
@@ -84,6 +97,7 @@ export default function KartonsParkzone() {
           done: sj.kartonGeliefert === "Ja",
           umzugskartons: sj.umzugskartons,
           kleiderkartons: sj.kleiderkartons,
+          note: sj.kartonNotiz || "",
         });
       }
 
@@ -96,6 +110,7 @@ export default function KartonsParkzone() {
           address,
           kind: "parkzone",
           done: sj.parkzoneGeliefert === "Ja",
+          note: sj.parkzoneNotiz || "",
         });
       }
     }
@@ -238,24 +253,43 @@ export default function KartonsParkzone() {
                   <Package size={13} /> Kartons
                 </p>
                 <div className="space-y-2">
-                  {selectedKartons.map((e, idx) => (
-                    <a
-                      key={idx}
-                      href={`/orders?open=${e.moveId}`}
-                      className="block rounded-lg border border-gray-100 p-3 hover:bg-gray-50"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-sm text-[#1a4d6d]">{e.customerName}</span>
-                        <Dot done={e.done} />
+                  {selectedKartons.map((e, idx) => {
+                    const key = noteKey(e.moveId, "karton");
+                    const draft = noteDrafts[key] ?? e.note;
+                    const dirty = draft !== e.note;
+                    return (
+                      <div key={idx} className="rounded-lg border border-gray-100 p-3">
+                        <div className="flex items-center justify-between">
+                          <a href={`/orders?open=${e.moveId}`} className="font-medium text-sm text-[#1a4d6d] hover:underline">
+                            {e.customerName}
+                          </a>
+                          <Dot done={e.done} />
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                          <MapPin size={11} /> {e.address}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          Umzugskartons: {e.umzugskartons || "0"} · Kleiderkartons: {e.kleiderkartons || "0"} · {e.kundenummer}
+                        </div>
+                        <textarea
+                          value={draft}
+                          onChange={(ev) => setNoteDrafts((prev) => ({ ...prev, [key]: ev.target.value }))}
+                          placeholder="Notiz hinzufügen…"
+                          rows={2}
+                          className="mt-2 w-full text-xs rounded-md border border-gray-200 p-2 focus:outline-none focus:ring-1 focus:ring-[#1a4d6d]/40"
+                        />
+                        {dirty && (
+                          <button
+                            onClick={() => saveNote.mutate({ moveId: e.moveId, field: "kartonNotiz", note: draft })}
+                            disabled={saveNote.isPending}
+                            className="mt-1 text-xs font-medium text-white bg-[#1a4d6d] hover:bg-[#14394f] rounded-md px-3 py-1"
+                          >
+                            Notiz speichern
+                          </button>
+                        )}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                        <MapPin size={11} /> {e.address}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        Umzugskartons: {e.umzugskartons || "0"} · Kleiderkartons: {e.kleiderkartons || "0"} · {e.kundenummer}
-                      </div>
-                    </a>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -266,22 +300,41 @@ export default function KartonsParkzone() {
                   <ParkingSquare size={13} /> Parkzone
                 </p>
                 <div className="space-y-2">
-                  {selectedParkzones.map((e, idx) => (
-                    <a
-                      key={idx}
-                      href={`/orders?open=${e.moveId}`}
-                      className="block rounded-lg border border-gray-100 p-3 hover:bg-gray-50"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-sm text-[#1a4d6d]">{e.customerName}</span>
-                        <Dot done={e.done} />
+                  {selectedParkzones.map((e, idx) => {
+                    const key = noteKey(e.moveId, "parkzone");
+                    const draft = noteDrafts[key] ?? e.note;
+                    const dirty = draft !== e.note;
+                    return (
+                      <div key={idx} className="rounded-lg border border-gray-100 p-3">
+                        <div className="flex items-center justify-between">
+                          <a href={`/orders?open=${e.moveId}`} className="font-medium text-sm text-[#1a4d6d] hover:underline">
+                            {e.customerName}
+                          </a>
+                          <Dot done={e.done} />
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                          <MapPin size={11} /> {e.address}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">{e.kundenummer}</div>
+                        <textarea
+                          value={draft}
+                          onChange={(ev) => setNoteDrafts((prev) => ({ ...prev, [key]: ev.target.value }))}
+                          placeholder="Notiz hinzufügen…"
+                          rows={2}
+                          className="mt-2 w-full text-xs rounded-md border border-gray-200 p-2 focus:outline-none focus:ring-1 focus:ring-[#1a4d6d]/40"
+                        />
+                        {dirty && (
+                          <button
+                            onClick={() => saveNote.mutate({ moveId: e.moveId, field: "parkzoneNotiz", note: draft })}
+                            disabled={saveNote.isPending}
+                            className="mt-1 text-xs font-medium text-white bg-[#1a4d6d] hover:bg-[#14394f] rounded-md px-3 py-1"
+                          >
+                            Notiz speichern
+                          </button>
+                        )}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                        <MapPin size={11} /> {e.address}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">{e.kundenummer}</div>
-                    </a>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
