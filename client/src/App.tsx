@@ -17,6 +17,7 @@ import Reminders from "@/pages/Reminders";
 import UsersManagement from "./pages/UsersManagement";
 import Rechnungen from "./pages/Rechnungen";
 import LocalLogin from "./pages/LocalLogin";
+import KartonsParkzone from "./pages/KartonsParkzone";
 
 
 function Router() {
@@ -37,6 +38,11 @@ function Router() {
       <Route path={"/reminders"}>
         <RequireAuth allowedRoles={["admin", "sales"]}>
           <Reminders />
+        </RequireAuth>
+      </Route>
+      <Route path={"/kartons-parkzone"}>
+        <RequireAuth allowedRoles={["admin", "sales", "supervisor"]}>
+          <KartonsParkzone />
         </RequireAuth>
       </Route>
       <Route path={"/admin-reports"}>
