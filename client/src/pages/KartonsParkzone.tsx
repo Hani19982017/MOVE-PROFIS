@@ -28,6 +28,7 @@ type DayEvent = {
   umzugskartons?: string;
   kleiderkartons?: string;
   note: string;
+  time?: string;
 };
 
 const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
@@ -51,6 +52,15 @@ function extractDateKey(raw: string | undefined | null): string | null {
   const datePart = raw.split("T")[0];
   if (!/^\d{4}-\d{2}-\d{2}$/.test(datePart)) return null;
   return datePart;
+}
+
+// "2026-07-31T10:00" -> "10:00". Returns undefined for plain date-only
+// strings (no time component), e.g. Parkzone's date-only field.
+function extractTime(raw: string | undefined | null): string | undefined {
+  if (!raw) return undefined;
+  const parts = raw.split("T");
+  if (parts.length < 2) return undefined;
+  return parts[1].slice(0, 5) || undefined;
 }
 
 export default function KartonsParkzone() {
@@ -109,6 +119,7 @@ export default function KartonsParkzone() {
           umzugskartons: sj.umzugskartons,
           kleiderkartons: sj.kleiderkartons,
           note: sj.kartonNotiz || "",
+          time: extractTime(sj.kartonDelivery || sj.deliveryDate),
         });
       }
 
@@ -292,6 +303,7 @@ export default function KartonsParkzone() {
                         <div className="flex items-center justify-between">
                           <a href={`/orders?open=${e.moveId}`} className="font-medium text-sm text-[#1a4d6d] hover:underline">
                             {e.customerName}
+                            {e.time && <span className="ml-2 text-xs font-normal text-gray-500">🕐 {e.time}</span>}
                           </a>
                           <Dot done={e.done} />
                         </div>
