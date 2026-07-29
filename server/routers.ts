@@ -930,6 +930,32 @@ export const appRouter = router({
           throw new Error("Aktualisieren der Daten fehlgeschlagen");
         }
       }),
+    // Leichter Endpunkt für eine einzelne Notiz zu Kartons oder Parkzone,
+    // ohne das komplette Auftragsformular erneut senden zu müssen.
+    updateServiceNote: protectedProcedure
+      .input(z.object({
+        moveId: z.number(),
+        field: z.enum(["kartonNotiz", "parkzoneNotiz"]),
+        note: z.string().max(1000),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await getDb();
+        if (!db) throw new Error("DB not available");
+        const { assertBranchAccess } = await import("./_core/context");
+        const [existingMove] = await db.select({ branchId: moves.branchId, servicesJson: moves.servicesJson })
+          .from(moves).where(eq(moves.id, input.moveId)).limit(1);
+        if (!existingMove) throw new Error("Auftrag nicht gefunden");
+        assertBranchAccess(ctx.user, existingMove.branchId);
+
+        let sj: Record<string, unknown> = {};
+        if (existingMove.servicesJson) {
+          try { sj = JSON.parse(existingMove.servicesJson); } catch { sj = {}; }
+        }
+        sj[input.field] = input.note;
+
+        await db.update(moves).set({ servicesJson: JSON.stringify(sj) }).where(eq(moves.id, input.moveId));
+        return { success: true };
+      }),
   }),
   workerMoves: router({
     // Aktuelle Mitarbeiteraufgaben mit Kundendaten abrufen
