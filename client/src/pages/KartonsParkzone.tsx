@@ -13,8 +13,10 @@
 
 import { useMemo, useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 import DashboardLayout from "@/components/DashboardLayout";
-import { ChevronLeft, ChevronRight, Package, ParkingSquare, MapPin } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ChevronLeft, ChevronRight, Package, ParkingSquare, MapPin, Building2 } from "lucide-react";
 
 type DayEvent = {
   moveId: number;
@@ -52,11 +54,20 @@ function extractDateKey(raw: string | undefined | null): string | null {
 }
 
 export default function KartonsParkzone() {
+  const { user } = useAuth();
   const today = new Date();
   const [viewDate, setViewDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDay, setSelectedDay] = useState<string>(toDateKey(today));
+  const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null);
 
-  const movesQuery = trpc.moves.list.useQuery();
+  const branchesQuery = trpc.branches.list.useQuery(undefined, {
+    enabled: !!user && user.role === "admin",
+  });
+  const branches = branchesQuery.data ?? [];
+
+  const movesQuery = trpc.moves.list.useQuery(
+    user?.role === "admin" ? { branchId: selectedBranchId } : undefined
+  );
   const moves = (movesQuery.data ?? []) as any[];
   const utils = trpc.useUtils();
 
@@ -151,11 +162,30 @@ export default function KartonsParkzone() {
   return (
     <DashboardLayout>
       <div className="max-w-6xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-[#1a4d6d]">Kartons & Parkzone</h1>
-          <p className="text-sm text-gray-500">
-            Übersicht: wer heute Kartons oder eine Parkzone braucht — rot pulsierend = noch nicht erledigt, grün = erledigt.
-          </p>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-[#1a4d6d]">Kartons & Parkzone</h1>
+            <p className="text-sm text-gray-500">
+              Übersicht: wer heute Kartons oder eine Parkzone braucht — rot pulsierend = noch nicht erledigt, grün = erledigt.
+            </p>
+          </div>
+          {user?.role === "admin" && branches.length > 0 && (
+            <Select
+              value={selectedBranchId === null ? "all" : String(selectedBranchId)}
+              onValueChange={(v) => setSelectedBranchId(v === "all" ? null : Number(v))}
+            >
+              <SelectTrigger className="w-52 h-9 text-sm bg-white">
+                <Building2 size={14} className="mr-1 text-gray-400" />
+                <SelectValue placeholder="Alle Filialen" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Alle Filialen</SelectItem>
+                {branches.map((b: any) => (
+                  <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-6">
