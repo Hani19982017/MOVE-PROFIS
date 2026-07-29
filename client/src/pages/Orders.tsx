@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   Search, Package, ArrowLeft, RefreshCw, Plus,
-  MapPin, Calendar, Euro, Truck, Eye, Edit2, Trash2, Image, Building2,
+  MapPin, Calendar, Euro, Truck, Eye, Edit2, Trash2, Image, Building2, CheckCircle2,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -416,6 +416,7 @@ export default function Orders() {
     ["pending", "confirmed", "in_progress"].includes(m.status)
   ).length;
   const completed = moves.filter((m: any) => m.status === "completed").length;
+  const registeredApex = moves.filter((m: any) => m.status === "confirmed").length;
   const unpaid = moves.filter((m: any) => m.paymentStatus === "unpaid").length;
   const handleRefreshAll = () => {
     (movesQuery as any).refetch?.();
@@ -483,9 +484,10 @@ export default function Orders() {
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Statistiken */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
           <StatCard title="Aufträge gesamt" value={total}     sub="Alle Aufträge"     icon={Package}  color="bg-[#1a4d6d]" />
           <StatCard title="aktive Aufträge" value={active}    sub="In Bearbeitung"      icon={Truck}    color="bg-orange-500" />
+          <StatCard title="Registriert Auf Apex" value={registeredApex} sub="Bestätigt" icon={CheckCircle2} color="bg-blue-600" />
           <StatCard title="Abgeschlossen"          value={completed} sub="Geliefert"       icon={Package}  color="bg-[#d97e3a]" />
           <StatCard title="Unbezahlt"      value={unpaid}    sub="Erfordern Folgemaßnahmen"     icon={Euro}     color="bg-red-500" />
         </div>
