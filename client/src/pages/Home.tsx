@@ -7,6 +7,7 @@ const ADMIN_CARDS = [
   { href: "/new-customer",  emoji: "👥", title: "Kunden & Verwaltung",          desc: "Kundendaten hinzufügen" },
   { href: "/orders",        emoji: "📦", title: "Kundenbetreuung & Verwaltung",    desc: "Kundengewinnung" },
   { href: "/reminders",     emoji: "⏰", title: "Erinnerungen & Kontaktstatus", desc: "Kunden, die nachverfolgt werden müssen" },
+  { href: "/kartons-parkzone", emoji: "📦", title: "Kartons & Parkzone",      desc: "Wer heute Kartons oder eine Parkzone braucht" },
   { href: "/rechnungen",    emoji: "🧾", title: "Rechnungen",                    desc: "Rechnungen Zahlungen anzeigen verwalten" },
   { href: "/admin",         emoji: "📊", title: "Dashboard",                 desc: "Verwaltung von Kunden, Aufträgen Zahlungen" },
   { href: "/worker",        emoji: "👷", title: "Tägliche Mitarbeiteraufgaben",          desc: "Aufgaben, Adressen Fotos anzeigen" },
@@ -20,6 +21,7 @@ const SALES_CARDS = [
   { href: "/new-customer", emoji: "👥", title: "Kunden & Verwaltung",          desc: "Kundendaten hinzufügen" },
   { href: "/orders",       emoji: "📦", title: "Kundenbetreuung & Verwaltung",             desc: "Kundengewinnung" },
   { href: "/reminders",    emoji: "⏰", title: "Erinnerungen & Kontaktstatus", desc: "Kunden, die nachverfolgt werden müssen" },
+  { href: "/kartons-parkzone", emoji: "📦", title: "Kartons & Parkzone",     desc: "Wer heute Kartons oder eine Parkzone braucht" },
   { href: "/rechnungen",   emoji: "🧾", title: "Rechnungen",            desc: "Rechnungen Zahlungen anzeigen verwalten" },
   { href: "/worker",       emoji: "👷", title: "Tägliche Mitarbeiteraufgaben",         desc: "Aufgaben Adressen anzeigen" },
 ];
