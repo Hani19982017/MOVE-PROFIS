@@ -77,7 +77,7 @@ export function generateInvoiceHTML(data: InvoiceData): string {
       align-items: flex-start;
       margin-bottom: 40px;
       padding-bottom: 20px;
-      border-bottom: 3px solid #0891b2;
+      border-bottom: 3px solid #d97e3a;
     }
     
     .company-info {
@@ -87,7 +87,7 @@ export function generateInvoiceHTML(data: InvoiceData): string {
     .company-name {
       font-size: 24pt;
       font-weight: bold;
-      color: #0891b2;
+      color: #d97e3a;
       margin-bottom: 8px;
     }
     
@@ -139,7 +139,7 @@ export function generateInvoiceHTML(data: InvoiceData): string {
     .address-block h3 {
       font-size: 11pt;
       font-weight: bold;
-      color: #0891b2;
+      color: #d97e3a;
       margin-bottom: 8px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -187,7 +187,7 @@ export function generateInvoiceHTML(data: InvoiceData): string {
     }
     
     .services-table thead {
-      background: #0891b2;
+      background: #d97e3a;
       color: white;
     }
     
@@ -207,7 +207,7 @@ export function generateInvoiceHTML(data: InvoiceData): string {
     }
     
     .services-table tbody tr:last-child td {
-      border-bottom: 2px solid #0891b2;
+      border-bottom: 2px solid #d97e3a;
     }
     
     .text-right {
@@ -241,7 +241,7 @@ export function generateInvoiceHTML(data: InvoiceData): string {
     }
     
     .grand-total {
-      border-top: 2px solid #0891b2;
+      border-top: 2px solid #d97e3a;
       margin-top: 10px;
       padding-top: 10px;
     }
@@ -249,12 +249,12 @@ export function generateInvoiceHTML(data: InvoiceData): string {
     .grand-total .total-label,
     .grand-total .total-value {
       font-size: 14pt;
-      color: #0891b2;
+      color: #d97e3a;
     }
     
     .payment-info {
       background: #f0f9ff;
-      border-left: 4px solid #0891b2;
+      border-left: 4px solid #d97e3a;
       padding: 20px;
       margin-top: 30px;
       border-radius: 4px;
@@ -263,7 +263,7 @@ export function generateInvoiceHTML(data: InvoiceData): string {
     .payment-info h3 {
       font-size: 12pt;
       font-weight: bold;
-      color: #0891b2;
+      color: #d97e3a;
       margin-bottom: 12px;
     }
     
@@ -302,12 +302,13 @@ export function generateInvoiceHTML(data: InvoiceData): string {
     <!-- Header -->
     <div class="header">
       <div class="company-info">
-        <div class="company-name">${data.companyName}</div>
+        <img src="https://d2xsxph8kpxj0f.cloudfront.net/98724221/dRc3boRSBaEdddsbQmhM9N/move-profis-logo_c64616b7.webp" alt="Move-Profis" style="max-height: 70px; margin-bottom: 12px;">
         <div class="company-details">
-          ${data.companyAddress}<br>
-          Tel: ${data.companyPhone}<br>
-          E-Mail: ${data.companyEmail}
-          ${data.companyTaxId ? `<br>Steuernummer: ${data.companyTaxId}` : ''}
+          Hochstraße 55a, 44866 Wattenscheid<br>
+          📞 Frankfurt: 0176 3298 5951<br>
+          📞 NRW: 0178 782 7013<br>
+          ✉️ info@move-profis.de<br>
+          🌐 www.move-profis.de
         </div>
       </div>
       <div class="invoice-title">
@@ -387,9 +388,10 @@ export function generateInvoiceHTML(data: InvoiceData): string {
     ` : `
     <!-- Payment Instructions -->
     <div class="payment-info">
-      <h3>Zahlungsinformationen</h3>
+      <h3>BEZAHLUNG</h3>
       <p>
-        Bitte überweisen Sie den Betrag innerhalb von 14 Tagen auf folgendes Konto:
+        <strong>Überweisung:</strong> Bitte überweisen Sie den Betrag spätestens 5 Tage vor dem Umzugstermin.<br>
+        <strong>Barzahlung:</strong> Sie können den Betrag auch am Tag des Umzugs in bar bezahlen.
       </p>
       ${data.bankName && data.bankIban ? `
       <p style="margin-top: 12px;">
@@ -404,8 +406,8 @@ export function generateInvoiceHTML(data: InvoiceData): string {
     
     <!-- Footer -->
     <div class="footer">
-      <p>${data.companyName} • ${data.companyAddress}</p>
-      <p>Tel: ${data.companyPhone} • E-Mail: ${data.companyEmail}</p>
+      <p>Move-Profis | Ihr Umzug. Unsere Profis. • Hochstraße 55a, 44866 Wattenscheid</p>
+      <p>Frankfurt: 0176 3298 5951 • NRW: 0178 782 7013 • info@move-profis.de • www.move-profis.de</p>
       ${data.companyTaxId ? `<p>Steuernummer: ${data.companyTaxId}</p>` : ''}
     </div>
   </div>
