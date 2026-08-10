@@ -326,10 +326,10 @@ export function generateInvoiceHTML(data: InvoiceData): string {
         <img src="${getLogo()}" alt="Move-Profis" style="max-height: 80px; margin-bottom: 12px;">
         <div class="company-details">
           Hochstraße 55a, 44866 Wattenscheid<br>
-          📞 Frankfurt: 0176 3298 5951<br>
-          📞 NRW: 0178 782 7013<br>
-          ✉️ info@move-profis.de<br>
-          🌐 www.move-profis.de
+          Frankfurt: 0176 3298 5951<br>
+          NRW: 0178 782 7013<br>
+          info@move-profis.de<br>
+          www.move-profis.de
         </div>
       </div>
       <div class="invoice-title">
