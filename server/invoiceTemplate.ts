@@ -3,6 +3,27 @@
  * Professional invoice template for Umzug services
  */
 
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+
+// Load the Move-Profis logo once and cache it as a base64 data URL, so the
+// invoice renders the logo reliably in the browser and in generated PDFs
+// without depending on any external URL.
+const __invoiceDir = dirname(fileURLToPath(import.meta.url));
+let cachedLogo: string | null = null;
+function getLogo(): string {
+  if (!cachedLogo) {
+    try {
+      const data = readFileSync(join(__invoiceDir, "assets", "invoice", "logo.png"));
+      cachedLogo = `data:image/png;base64,${data.toString("base64")}`;
+    } catch {
+      cachedLogo = "";
+    }
+  }
+  return cachedLogo;
+}
+
 export interface InvoiceData {
   // Company info (hardcoded for now)
   companyName: string;
@@ -302,7 +323,7 @@ export function generateInvoiceHTML(data: InvoiceData): string {
     <!-- Header -->
     <div class="header">
       <div class="company-info">
-        <img src="https://d2xsxph8kpxj0f.cloudfront.net/98724221/dRc3boRSBaEdddsbQmhM9N/move-profis-logo_c64616b7.webp" alt="Move-Profis" style="max-height: 70px; margin-bottom: 12px;">
+        <img src="${getLogo()}" alt="Move-Profis" style="max-height: 80px; margin-bottom: 12px;">
         <div class="company-details">
           Hochstraße 55a, 44866 Wattenscheid<br>
           📞 Frankfurt: 0176 3298 5951<br>
