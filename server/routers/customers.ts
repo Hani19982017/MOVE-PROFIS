@@ -621,6 +621,7 @@ export const customersRouter = router({
       const servicesJson = parseServicesJson((move as any).servicesJson);
       const customerName = `${customer.title ? `${customer.title} ` : ""}${customer.firstName} ${customer.lastName}`.trim();
       const moveDate = formatDateForOffer((move as any).pickupDate);
+      const deliveryDate = formatDateForOffer((move as any).deliveryDate ?? (move as any).pickupDate);
       const grossPriceNumeric = Number((move as any).grossPrice ?? 0);
       const grossPrice = formatMoneyForOffer(grossPriceNumeric);
       const nettoPrice = grossPrice;
@@ -632,6 +633,7 @@ export const customersRouter = router({
       const html = generateOfferHTML({
         kundenummer,
         moveDate,
+        deliveryDate,
         customerName,
         customerEmail: customer.email ?? "",
         customerPhone: customer.phone ?? "",
