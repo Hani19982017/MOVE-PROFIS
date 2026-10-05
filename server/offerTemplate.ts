@@ -28,6 +28,8 @@ import { fileURLToPath } from "node:url";
 export interface OfferTemplateData {
   kundenummer: string;
   moveDate: string;
+  /** Einzug (delivery) date. Falls back to moveDate when not provided. */
+  deliveryDate?: string;
   customerName: string;
   customerEmail: string;
   customerPhone: string;
@@ -360,7 +362,7 @@ export function generateOfferHTML(data: OfferTemplateData): string {
                 </tr>
             </thead>
             <tbody>
-                <tr><td>Datum*</td><td>${valueOrBlank(data.moveDate)}</td><td>${valueOrBlank(data.moveDate)}</td></tr>
+                <tr><td>Datum*</td><td>${valueOrBlank(data.moveDate)}</td><td>${valueOrBlank(data.deliveryDate ?? data.moveDate)}</td></tr>
                 <tr><td>Etage*</td><td>${valueOrBlank(data.pickupFloor)}</td><td>${valueOrBlank(data.deliveryFloor)}</td></tr>
                 <tr><td>Fahrstuhl Kapazität</td><td>${valueOrBlank(data.pickupElevator)}</td><td>${valueOrBlank(data.deliveryElevator)}</td></tr>
                 <tr><td>Fußweg*</td><td>${valueOrBlank(data.pickupWalkway)}</td><td>${valueOrBlank(data.deliveryWalkway)}</td></tr>
